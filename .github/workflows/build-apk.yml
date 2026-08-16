@@ -33,7 +33,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   # Secrets をジョブ全体で使えるようにする（未設定なら空文字）
@@ -118,3 +118,18 @@ jobs:
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 30
+
+      # ---- 7. GitHub Releases にも APK を公開（ダウンロードしやすくするため） ----
+      - name: Publish APK to GitHub Releases
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: android
+        run: |
+          APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
+          gh release create \
+            "v1.0.0-${{ github.run_number }}" \
+            "$APK" \
+            --title "INFOLD APK (ビルド #${{ github.run_number }})" \
+            --notes "GitHub Actions で自動ビルドされた INFOLD Android アプリ (APK)。" \
+            --repo "${{ github.repository }}"
