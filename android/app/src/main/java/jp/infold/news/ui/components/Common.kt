@@ -50,6 +50,7 @@ import jp.infold.news.data.Article
 import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.ui.theme.categoryColor
 import jp.infold.news.ui.theme.categorySoftColor
+import jp.infold.news.util.categoryDisplayName
 import jp.infold.news.util.formatPublishedAt
 
 // ============================================================
@@ -182,23 +183,37 @@ fun ArticleRowCard(
     val colors = LocalInfoldColors.current
     GlassCard(modifier = modifier.fillMaxWidth(), onClick = onClick) {
         Row(modifier = Modifier.padding(12.dp)) {
-            ArticleThumb(article.thumbnail, Modifier.size(width = 120.dp, height = 82.dp))
+            ArticleThumb(
+                raw = article.thumbnail,
+                category = article.category,
+                modifier = Modifier.size(width = 120.dp, height = 100.dp),
+            )
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = article.title,
                     style = MaterialTheme.typography.titleMedium,
                     color = colors.textPrimary,
-                    maxLines = 3,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                if (article.description.isNotBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = article.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textSecondary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 Spacer(Modifier.weight(1f))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    CategoryBadge(article.category, article.category)
+                    CategoryBadge(article.category, categoryDisplayName(article.category, emptyList(), lang))
                     if (article.featured) {
                         Icon(
                             Icons.Filled.Star,
@@ -219,9 +234,9 @@ fun ArticleRowCard(
     }
 }
 
-/** サムネイル（無い場合はカテゴリ色のプレースホルダー） */
+/** サムネイル（無い場合はカテゴリ色のグラデーション + ロゴ） */
 @Composable
-fun ArticleThumb(raw: String?, modifier: Modifier = Modifier) {
+fun ArticleThumb(raw: String?, category: String = "other", modifier: Modifier = Modifier) {
     val colors = LocalInfoldColors.current
     val resolved = ApiClient.resolveImage(raw)
     val shape = RoundedCornerShape(10.dp)
@@ -233,17 +248,18 @@ fun ArticleThumb(raw: String?, modifier: Modifier = Modifier) {
             contentScale = ContentScale.Crop,
         )
     } else {
+        val c = categoryColor(category)
         Box(
             modifier = modifier
                 .clip(shape)
-                .background(colors.backgroundSoft),
+                .background(
+                    Brush.linearGradient(
+                        listOf(c.copy(alpha = 0.85f), colors.backgroundSoft)
+                    )
+                ),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = "INFOLD",
-                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp),
-                color = colors.textFaint,
-            )
+            BrandLogo(size = 30.dp)
         }
     }
 }

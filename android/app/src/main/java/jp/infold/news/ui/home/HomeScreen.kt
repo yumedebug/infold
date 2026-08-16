@@ -74,9 +74,11 @@ fun HomeScreen(
         state = UiState.Loading
         state = try {
             val featured = ApiClient.listArticles(page = 1, limit = 3, featured = true).articles
-            val hero = featured.firstOrNull()
-            val latest = ApiClient.listArticles(page = 1, limit = 11, exclude = hero?.id).articles
-            UiState.Ready(HomeData(hero = hero, latest = latest, featured = featured))
+            val latest = ApiClient.listArticles(page = 1, limit = 11).articles
+            // 注目記事が無い場合は最新記事をヒーローに使う
+            val hero = featured.firstOrNull() ?: latest.firstOrNull()
+            val latestFiltered = latest.filter { it.id != hero?.id }
+            UiState.Ready(HomeData(hero = hero, latest = latestFiltered, featured = featured))
         } catch (e: Exception) {
             UiState.Error(
                 if (ApiClient.isOfflineException(e)) {

@@ -197,6 +197,13 @@ fun ArticleDetailScreen(
                                 style = MaterialTheme.typography.headlineMedium,
                                 color = colors.textPrimary,
                             )
+                            if (article.description.isNotBlank()) {
+                                Text(
+                                    text = article.description,
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                    color = colors.textSecondary,
+                                )
+                            }
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
