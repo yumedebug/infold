@@ -1,0 +1,24 @@
+{
+  "name": "infold-news",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "INFOLD — Cloudflare-powered news media site (Workers + D1 + R2 + Cron + Gemini)",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "dev:scheduled": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create news-site-db",
+    "db:migrate:local": "wrangler d1 execute news-site-db --local --file=migrations/0001_initial.sql",
+    "db:migrate:remote": "wrangler d1 execute news-site-db --remote --file=migrations/0001_initial.sql",
+    "db:tables": "wrangler d1 execute news-site-db --remote --command=\"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;\"",
+    "create-admin": "node scripts/create-admin.js",
+    "logs": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.14.0"
+  }
+}

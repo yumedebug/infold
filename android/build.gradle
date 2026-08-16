@@ -1,0 +1,5 @@
+// INFOLD Android アプリ（TWA）プロジェクト
+// ルートのビルド定義。プラグインのバージョンはここで管理する。
+plugins {
+    id 'com.android.application' version '8.11.1' apply false
+}

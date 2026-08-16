@@ -1,0 +1,108 @@
+# ============================================================
+# INFOLD Android APK ビルドワークフロー
+# ------------------------------------------------------------
+# ローカルの PC に Android Studio / Android SDK がなくても、
+# GitHub 上（ubuntu-latest）で APK をビルドして Artifact として
+# 保存する。
+#
+# トリガー:
+#   - main ブランチへの push（android/ または本ファイルの変更時）
+#   - GitHub Actions 画面からの手動実行（workflow_dispatch）
+#
+# 署名について:
+#   GitHub Secrets に下記を設定すると、Release 署名付き APK を生成する。
+#     ANDROID_KEYSTORE_BASE64    keystore ファイルを base64 エンコードした文字列
+#     ANDROID_KEYSTORE_PASSWORD  keystore / 鍵のパスワード
+#     ANDROID_KEY_ALIAS          鍵のエイリアス（例: infold）
+#   Secrets が無い場合は debug 鍵で署名した APK を生成する
+#   （実機テスト用。TWA 検証は通らないためアプリ内 WebView で表示）。
+#   署名鍵はリポジトリにコミットせず、必ず Secrets で管理する。
+#
+#   keystore の生成は「Generate release keystore」ワークフロー
+#   （.github/workflows/generate-keystore.yml）で行える。
+# ============================================================
+
+name: Build INFOLD Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Secrets をジョブ全体で使えるようにする（未設定なら空文字）
+  ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+  ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+  ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+
+jobs:
+  build-apk:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---- 1. Java 環境 ----
+      - name: Set up Java (Temurin JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # ---- 2. Android SDK ----
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      # ---- 3. Gradle（キャッシュ付き） ----
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # ---- 4. Release 署名鍵（Secrets がある場合のみ） ----
+      - name: Write release keystore from secrets
+        if: env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEYSTORE_PASSWORD != '' && env.ANDROID_KEY_ALIAS != ''
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/infold-release.keystore
+          # パスワードに特殊文字が含まれても安全なよう printf で書き出す
+          printf 'storeFile=infold-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+            "$ANDROID_KEYSTORE_PASSWORD" "$ANDROID_KEY_ALIAS" "$ANDROID_KEYSTORE_PASSWORD" \
+            > android/keystore.properties
+          echo "::group::Release keystore"
+          keytool -list -v -keystore android/infold-release.keystore \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" \
+            2>/dev/null | grep -A1 'SHA256:' | head -2
+          echo "::endgroup::"
+
+      # ---- 5. Gradle ビルド（Release APK を生成） ----
+      - name: Build release APK
+        working-directory: android
+        run: |
+          # Windows 環境で git add された場合に実行権限が失われることがあるため明示的に付与
+          chmod +x gradlew
+          ./gradlew :app:assembleRelease --stacktrace
+
+      # ---- 署名フィンガープリントの表示（assetlinks.json に使う値） ----
+      - name: Print signing fingerprint
+        if: always()
+        working-directory: android
+        run: |
+          APK=$(ls app/build/outputs/apk/release/*.apk 2>/dev/null | head -1)
+          if [ -n "$APK" ]; then
+            echo "署名フィンガープリント（.well-known/assetlinks.json の sha256_cert_fingerprints に記載する値）:"
+            keytool -printcert -jarfile "$APK" 2>/dev/null | grep -A1 'SHA256:' | head -2 || true
+          fi
+
+      # ---- 6. APK を Artifact として保存 ----
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: infold-apk
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 30

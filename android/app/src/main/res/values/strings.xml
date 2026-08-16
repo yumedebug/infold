@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ランチャーに表示されるアプリ名 -->
+    <string name="app_name">INFOLD</string>
+
+    <!--
+      TWA 検証用のアセット宣言（JSON）。
+      このアプリが https://infold.f5.si/ を信頼することを宣言する。
+      サイト側の .well-known/assetlinks.json には、このアプリの
+      パッケージ名（jp.infold.news）と署名鍵の SHA-256
+      フィンガープリントが記載されている必要がある。
+    -->
+    <string name="asset_statements" translatable="false">
+        [{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"web","site":"https://infold.f5.si"}}]
+    </string>
+</resources>

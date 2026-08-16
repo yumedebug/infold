@@ -1,0 +1,19 @@
+node_modules/
+.wrangler/
+.dev.vars
+*.log
+.DS_Store
+
+# ---- Android（ビルドは GitHub Actions 上で行うためローカルに不要なものを除外） ----
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+android/.cxx/
+# 署名鍵・署名設定（絶対にコミットしない）
+android/*.keystore
+android/*.jks
+android/keystore.properties
+*.keystore
+*.jks

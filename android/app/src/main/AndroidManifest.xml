@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Infold">
+
+        <!--
+          TWA ランチャーアクティビティ。
+          https://infold.f5.si/ を Trusted Web Activity として表示する。
+          サイト側（.well-known/assetlinks.json）とのデジタルアセット
+          リンク検証に成功するとフルスクリーンの TWA になり、検証前は
+          FALLBACK_STRATEGY=WEBVIEW によりアプリ内 WebView で表示される。
+        -->
+        <activity
+            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:exported="true">
+
+            <!-- TWA が開く URL -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.DEFAULT_URL"
+                android:value="https://infold.f5.si/" />
+
+            <!-- ステータスバー / ナビゲーションバーの色 -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
+                android:resource="@color/colorPrimary" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
+                android:resource="@color/navigationColor" />
+
+            <!--
+              検証に失敗した場合（例: assetlinks.json のフィンガープリント
+              が未設定）は、外部ブラウザではなくアプリ内 WebView にフォール
+              バックする。TWA 検証が通ればこの設定は使われない。
+            -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
+                android:value="WEBVIEW" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.ENABLE_NOTIFICATIONS"
+                android:value="false" />
+
+            <!-- ランチャーアイコンからの起動 -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- infold.f5.si のリンクをこのアプリで開く（TWA 検証対象） -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="infold.f5.si" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          TWA 検証: このアプリが信頼する Web サイトの宣言。
+          サイト側の .well-known/assetlinks.json に「このアプリの
+          パッケージ名 + 署名鍵の SHA-256」が記載されていることと
+          ペアで検証が成立する。
+        -->
+        <meta-data
+            android:name="asset_statements"
+            android:resource="@string/asset_statements" />
+    </application>
+
+</manifest>

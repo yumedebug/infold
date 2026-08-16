@@ -1,0 +1,12 @@
+# Copy this file to .dev.vars and fill in your key for LOCAL development.
+# For production, set the same values as Cloudflare Worker Secrets instead
+# (never commit .dev.vars).
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Optional: override the Gemini model (defaults to gemini-flash-latest)
+# GEMINI_MODEL=gemini-flash-latest
+
+# Translation API (separate key/model from auto-posting — used when the UI is
+# switched to English to translate article bodies on the fly)
+TRANSLATION_API_KEY=your_translation_gemini_key_here
+TRANSLATION_MODEL=gemini-3.1-flash-lite

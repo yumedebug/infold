@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      TWA 起動直後のスプラッシュ / ステータスバー用テーマ。
+      INFOLD のダークデザインに合わせる。
+    -->
+    <style name="Theme.Infold" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/windowBackground</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:navigationBarColor">@color/navigationColor</item>
+    </style>
+</resources>

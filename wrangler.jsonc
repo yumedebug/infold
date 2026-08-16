@@ -1,0 +1,85 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "infold-news",
+  "main": "worker/src/index.js",
+  "compatibility_date": "2025-12-01",
+
+  // Keep serving on the *.workers.dev subdomain alongside the custom domain.
+  "workers_dev": true,
+
+  // ---- Frontend hosting (html/index.html + inline CSS/JS) ----
+  // "none" -> requests that do not match a static file are passed to the
+  // Worker, which serves index.html as the SPA fallback for front-end routes
+  // while /api/* is handled by the Worker itself.
+  "assets": {
+    "directory": "./html",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "none"
+  },
+
+  // ---- Custom domain: infold.f5.si ----
+  // Zone "infold.f5.si" is added on Cloudflare (Free plan) and delegated via
+  // NS records at f5.si. A standard zone route (instead of custom_domain) is
+  // used because the zone already contains a proxied DNS record for the apex
+  // that blocks custom_domain attachment (API error 100117). The worker route
+  // takes precedence over that record's origin, so requests hit this Worker.
+  "routes": [
+    { "pattern": "infold.f5.si/*", "zone_id": "662ad7afb03d217498214a98af060b99" }
+  ],
+
+  // ---- D1 databases ----
+  // DB: existing news data (articles/users/sessions...). Never modify its
+  // tables for the points feature.
+  // POINTS: dedicated points database (INFOLD_POINTS). Only points data lives
+  // here; reader accounts stay in the news D1 (readers / reader_sessions).
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "news-site-db",
+      "database_id": "8545ddc5-ee4f-49bb-aa84-78038884b1e3"
+    },
+    {
+      "binding": "POINTS",
+      "database_name": "INFOLD_POINTS",
+      "database_id": "a504013a-65a4-4fac-8565-071754eb1b7f"
+    }
+  ],
+
+  // ---- R2 storage (binding name must be "IMAGES") ----
+  // TEMPORARILY DISABLED: R2 is not enabled on this account yet.
+  // Enable R2 in the Cloudflare Dashboard (R2 -> Get started), then uncomment
+  // this block and run `wrangler r2 bucket create news-site-images`.
+  // "r2_buckets": [
+  //   {
+  //     "binding": "IMAGES",
+  //     "bucket_name": "news-site-images"
+  //   }
+  // ],
+
+  // ---- Cron trigger ----
+  // Runs hourly (0 * * * *). This is the tightest interval allowed on the
+  // Free plan (sub-hourly schedules such as */10 require a Paid Workers plan).
+  // Each tick imports new ITFIS articles; the daily 08:00 (Asia/Tokyo)
+  // auto-posting pipeline is gated by its own automation_state machine, so
+  // the extra ticks never post more than once a day.
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+
+  // ---- Plain vars (do NOT put secrets here) ----
+  "vars": {
+    "GEMINI_MODEL": "gemini-flash-latest",
+    // Translation model (separate from auto-posting). The API key itself must
+    // be set as the secret TRANSLATION_API_KEY (wrangler secret put).
+    "TRANSLATION_MODEL": "gemini-3.1-flash-lite",
+    // Frontend and API run on the same Workers origin, so this stays empty.
+    // Only set it (comma-separated hosts) if the API is called from another
+    // origin (e.g. a custom domain or a separate Pages site).
+    "ALLOWED_ORIGINS": ""
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

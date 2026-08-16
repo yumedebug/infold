@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- INFOLD ブランドカラー（Web サイトの theme-color / プライマリと同一） -->
+    <color name="colorPrimary">#00c8ff</color>
+    <color name="navigationColor">#0b1224</color>
+    <color name="windowBackground">#0b1224</color>
+    <!-- アダプティブアイコンの背景 -->
+    <color name="ic_launcher_background">#0b1224</color>
+</resources>

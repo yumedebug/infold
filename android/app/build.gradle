@@ -1,0 +1,66 @@
+// ============================================================
+// INFOLD — Trusted Web Activity (TWA) アプリモジュール
+// ============================================================
+// 署名について:
+//   android/keystore.properties（Git にコミットしない）があれば
+//   Release ビルドをその鍵で署名する。無ければ debug 鍵で署名する
+//   （実機テスト用。この場合 TWA 検証は通らないため、アプリ内
+//   WebView フォールバックで表示される）。
+//
+//   keystore.properties の形式（storeFile は android/ からの相対パス）:
+//     storeFile=infold-release.keystore
+//     storePassword=...
+//     keyAlias=infold
+//     keyPassword=...
+plugins {
+    id 'com.android.application'
+}
+
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def hasKeystore = keystorePropertiesFile.exists()
+def keystoreProperties = new Properties()
+if (hasKeystore) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace 'jp.infold.news'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'jp.infold.news'
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    signingConfigs {
+        release {
+            if (hasKeystore) {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // 署名鍵があれば release 鍵、無ければ debug 鍵で署名
+            signingConfig hasKeystore ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // Trusted Web Activity を実現する Google 公式ライブラリ
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.0'
+}
