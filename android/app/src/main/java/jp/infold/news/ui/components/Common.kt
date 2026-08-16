@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import jp.infold.news.data.ApiClient
 import jp.infold.news.data.Article
+import jp.infold.news.data.BASE_URL
 import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.ui.theme.categoryColor
 import jp.infold.news.ui.theme.categorySoftColor
@@ -379,16 +381,25 @@ fun LoadingView(modifier: Modifier = Modifier) {
     }
 }
 
-/** エラー表示（オフライン時は専用メッセージ） */
+/** エラー表示（オフライン時は専用メッセージ）。debug に技術情報を出すと原因特定が容易 */
 @Composable
 fun ErrorView(
     message: String,
     modifier: Modifier = Modifier,
     onRetry: (() -> Unit)? = null,
+    debug: String? = null,
 ) {
     val colors = LocalInfoldColors.current
+    val context = LocalContext.current
+    val version = remember {
+        try {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        } catch (_: Exception) {
+            "?"
+        }
+    }
     Column(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 56.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
@@ -418,6 +429,12 @@ fun ErrorView(
                     .padding(horizontal = 24.dp, vertical = 10.dp),
             )
         }
+        Text(
+            text = "INFOLD v$version\nAPI: $BASE_URL\n${debug ?: ""}",
+            style = MaterialTheme.typography.labelSmall,
+            color = colors.textFaint,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

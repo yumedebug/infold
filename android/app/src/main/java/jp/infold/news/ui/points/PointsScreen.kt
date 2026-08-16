@@ -163,7 +163,12 @@ fun PointsScreen(
 
             else -> when (val s = state) {
                 is UiState.Loading -> LoadingView(Modifier.fillMaxSize())
-                is UiState.Error -> ErrorView(message = s.message, onRetry = { scope.launch { load() } }, modifier = Modifier.fillMaxSize())
+                is UiState.Error -> ErrorView(
+                    message = s.message,
+                    debug = s.debug,
+                    onRetry = { scope.launch { load() } },
+                    modifier = Modifier.fillMaxSize(),
+                )
                 is UiState.Ready -> {
                     val summary = s.data
                     LazyColumn(modifier = Modifier.fillMaxSize()) {

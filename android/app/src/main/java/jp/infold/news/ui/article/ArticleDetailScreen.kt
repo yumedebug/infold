@@ -98,7 +98,8 @@ fun ArticleDetailScreen(
                     context.getString(R.string.common_offline)
                 } else {
                     context.getString(R.string.common_failed)
-                }
+                },
+                debug = e.javaClass.simpleName + ": " + (e.message ?: ""),
             )
         }
     }
@@ -145,6 +146,7 @@ fun ArticleDetailScreen(
 
             is UiState.Error -> ErrorView(
                 message = s.message,
+                debug = s.debug,
                 onRetry = {
                     scope.launch {
                         state = UiState.Loading
@@ -156,7 +158,8 @@ fun ArticleDetailScreen(
                                     context.getString(R.string.common_offline)
                                 } else {
                                     context.getString(R.string.common_failed)
-                                }
+                                },
+                                debug = e.javaClass.simpleName + ": " + (e.message ?: ""),
                             )
                         }
                     }

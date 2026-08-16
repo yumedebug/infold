@@ -85,7 +85,8 @@ fun HomeScreen(
                     context.getString(R.string.common_offline)
                 } else {
                     context.getString(R.string.common_failed)
-                }
+                },
+                debug = e.javaClass.simpleName + ": " + (e.message ?: ""),
             )
         }
     }
@@ -115,6 +116,7 @@ fun HomeScreen(
             is UiState.Error -> ErrorView(
                 message = s.message,
                 onRetry = { refreshKey++ },
+                debug = s.debug,
                 modifier = Modifier.fillMaxSize(),
             )
 

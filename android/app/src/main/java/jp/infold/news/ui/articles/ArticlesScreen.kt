@@ -84,7 +84,8 @@ fun ArticlesScreen(
             error = if (ApiClient.isOfflineException(e)) {
                 context.getString(R.string.common_offline)
             } else {
-                context.getString(R.string.common_failed)
+                context.getString(R.string.common_failed) + "\n" +
+                    e.javaClass.simpleName + ": " + (e.message ?: "")
             }
         }
         loading = false
