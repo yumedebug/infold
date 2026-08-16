@@ -181,6 +181,17 @@ INFOLD Web (https://infold.f5.si/)
 
 ## GitHub Actions から APK を取得する方法
 
+### 方法1: GitHub Releases（簡単・推奨）
+
+ビルドが成功すると **GitHub Releases** にも自動的に APK が公開されます（タグ `v1.0.0-<ビルド番号>`）。
+
+1. リポジトリの **Releases** ページ（https://github.com/yumedebug/infold/releases）を開く
+2. 最新の Release の **Assets** から `app-release.apk` をダウンロード
+
+> 直接ダウンロード: `https://github.com/yumedebug/infold/releases/latest/download/app-release.apk`
+
+### 方法2: Actions の Artifact から取得
+
 1. Actions タブ →「Build INFOLD Android APK」→ 実行したワークフローをクリック
 2. ページ下部の **Artifacts** セクションに `infold-apk` があるのでクリックしてダウンロード
 3. ダウンロードした ZIP を解凍すると `app-release.apk` が入っています
