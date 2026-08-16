@@ -51,7 +51,7 @@ jobs:
 
       # ---- 1. Java 環境 ----
       - name: Set up Java (Temurin JDK 17)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -85,7 +85,19 @@ jobs:
         run: |
           # Windows 環境で git add された場合に実行権限が失われることがあるため明示的に付与
           chmod +x gradlew
-          ./gradlew :app:assembleRelease --stacktrace
+          # ログをファイルにも残す（失敗時の原因調査用）
+          ./gradlew :app:assembleRelease --stacktrace 2>&1 | tee build.log
+          exit ${PIPESTATUS[0]}
+
+      # ---- 失敗時にビルドログを Artifact として保存（原因調査用） ----
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-build-log
+          path: android/build.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       # ---- 署名フィンガープリントの表示（assetlinks.json に使う値） ----
       - name: Print signing fingerprint
