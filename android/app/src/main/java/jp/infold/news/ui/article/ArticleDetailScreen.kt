@@ -81,7 +81,8 @@ fun ArticleDetailScreen(
     val scope = rememberCoroutineScope()
 
     var state by remember { mutableStateOf<UiState<ArticleDetailResponse>>(UiState.Loading) }
-    val scrollState = rememberLazyListState()
+    // 記事ごとに新しいリスト状態（先頭から表示）
+    val scrollState = remember(articleId) { rememberLazyListState() }
     var claimArmed by remember { mutableStateOf(false) }
     var claimDone by remember { mutableStateOf(false) }
 
@@ -89,7 +90,6 @@ fun ArticleDetailScreen(
         state = UiState.Loading
         claimArmed = false
         claimDone = false
-        scrollState.scrollToItem(0)
         state = try {
             UiState.Ready(ApiClient.getArticle(articleId))
         } catch (e: Exception) {

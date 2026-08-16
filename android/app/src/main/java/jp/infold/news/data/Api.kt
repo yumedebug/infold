@@ -227,6 +227,26 @@ object ApiClient {
 
     fun isOfflineException(e: Throwable): Boolean =
         e is IOException || (e is ApiException && e.code.startsWith("http_"))
+
+    /**
+     * 接続診断用：アプリと同じクライアント設定で API を叩き、生の結果を返す。
+     * エラー画面の「接続テスト」ボタンから呼ばれる。
+     */
+    suspend fun rawConnectivityTest(): String = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url(url("/api/articles?page=1&limit=1"))
+                .header("X-Requested-With", "XMLHttpRequest")
+                .build()
+            client.newCall(request).execute().use { resp ->
+                val body = resp.body?.string() ?: ""
+                val head = body.take(160).replace('\n', ' ')
+                "HTTP ${resp.code} ${resp.message}\n$head"
+            }
+        } catch (e: Exception) {
+            "${e.javaClass.simpleName}: ${e.message}"
+        }
+    }
 }
 
 @kotlinx.serialization.Serializable

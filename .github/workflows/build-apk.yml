@@ -143,7 +143,7 @@ jobs:
           ASSETS="$APK"
           if [ -n "$AAB" ]; then ASSETS="$ASSETS $AAB"; fi
           gh release create \
-            "v2.0.1-${{ github.run_number }}" \
+            "v2.0.2-${{ github.run_number }}" \
             $ASSETS \
             --title "INFOLD ネイティブアプリ (ビルド #${{ github.run_number }})" \
             --notes "GitHub Actions で自動ビルドされた INFOLD ネイティブ Android アプリ（APK / AAB）。" \

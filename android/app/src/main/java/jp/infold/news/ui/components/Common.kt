@@ -28,7 +28,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +58,7 @@ import jp.infold.news.ui.theme.categoryColor
 import jp.infold.news.ui.theme.categorySoftColor
 import jp.infold.news.util.categoryDisplayName
 import jp.infold.news.util.formatPublishedAt
+import kotlinx.coroutines.launch
 
 // ============================================================
 // INFOLD 共通 UI コンポーネント（Liquid Glass デザイン）
@@ -429,8 +434,32 @@ fun ErrorView(
                     .padding(horizontal = 24.dp, vertical = 10.dp),
             )
         }
+
+        // 接続テスト（端末から API を直接叩いて結果を表示）
+        val scope = rememberCoroutineScope()
+        var testing by remember { mutableStateOf(false) }
+        var testResult by remember { mutableStateOf<String?>(null) }
         Text(
-            text = "INFOLD v$version\nAPI: $BASE_URL\n${debug ?: ""}",
+            text = if (testing) "接続テスト中…" else "接続テスト",
+            style = MaterialTheme.typography.labelMedium,
+            color = colors.primary,
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    if (!testing) {
+                        testing = true
+                        testResult = null
+                        scope.launch {
+                            testResult = ApiClient.rawConnectivityTest()
+                            testing = false
+                        }
+                    }
+                }
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+        )
+        Text(
+            text = "INFOLD v$version\nAPI: $BASE_URL\n${debug ?: ""}" +
+                (testResult?.let { "\n\n[接続テスト]\n$it" } ?: ""),
             style = MaterialTheme.typography.labelSmall,
             color = colors.textFaint,
             modifier = Modifier.fillMaxWidth(),

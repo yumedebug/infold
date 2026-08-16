@@ -66,7 +66,8 @@ fun ArticlesScreen(
     var loadingMore by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var refreshKey by remember { mutableStateOf(0) }
-    val listState = rememberLazyListState()
+    // カテゴリを切り替えるたびに新しいリスト状態を使う（先頭に戻すため）
+    val listState = remember(selected) { rememberLazyListState() }
 
     suspend fun loadFirst(category: String?) {
         articles = emptyList()
@@ -74,7 +75,6 @@ fun ArticlesScreen(
         total = 0
         loading = true
         error = null
-        listState.scrollToItem(0)
         try {
             val res = ApiClient.listArticles(page = 1, limit = 12, category = category)
             articles = res.articles
