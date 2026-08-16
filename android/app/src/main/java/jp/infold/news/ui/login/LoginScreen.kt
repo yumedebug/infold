@@ -231,7 +231,7 @@ private fun TabButton(label: String, selected: Boolean, onClick: () -> Unit, mod
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
         color = if (selected) colors.primary else colors.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) colors.primary else colors.glassBorder),
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) colors.primary else colors.cardBorder),
     ) {
         Text(
             text = label,
@@ -248,7 +248,7 @@ private fun TabButton(label: String, selected: Boolean, onClick: () -> Unit, mod
 @Composable
 private fun fieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = LocalInfoldColors.current.primary,
-    unfocusedBorderColor = LocalInfoldColors.current.glassBorder,
+    unfocusedBorderColor = LocalInfoldColors.current.cardBorder,
     focusedContainerColor = LocalInfoldColors.current.surface,
     unfocusedContainerColor = LocalInfoldColors.current.surface,
     cursorColor = LocalInfoldColors.current.primary,

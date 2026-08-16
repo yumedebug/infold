@@ -91,7 +91,7 @@ fun SearchScreen(
             keyboardActions = KeyboardActions(onSearch = { searchKey++ }),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = colors.primary,
-                unfocusedBorderColor = colors.glassBorder,
+                unfocusedBorderColor = colors.cardBorder,
                 focusedContainerColor = colors.surface,
                 unfocusedContainerColor = colors.surface,
                 cursorColor = colors.primary,

@@ -1,11 +1,44 @@
 package jp.infold.news.data
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonPrimitive
 
 // ============================================================
 // INFOLD API のレスポンスモデル（Cloudflare Worker / D1）
 // ============================================================
+
+/**
+ * D1 は INTEGER(0/1) で返すが、モデルは Boolean で扱いたいときに使う。
+ * JSON の 0/1/true/false のどれでも受け付ける。
+ */
+object BooleanIntSerializer : KSerializer<Boolean> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("BooleanOrInt", PrimitiveKind.BOOLEAN)
+
+    override fun serialize(encoder: Encoder, value: Boolean) {
+        encoder.encodeBoolean(value)
+    }
+
+    override fun deserialize(decoder: Decoder): Boolean {
+        if (decoder !is JsonDecoder) return decoder.decodeBoolean()
+        val element = decoder.decodeJsonElement()
+        return when {
+            element is JsonPrimitive && element.isString ->
+                element.content.equals("true", ignoreCase = true)
+            element is JsonPrimitive ->
+                element.content == "1" || element.content.equals("true", ignoreCase = true)
+            else -> false
+        }
+    }
+}
 
 @Serializable
 data class Article(
@@ -14,10 +47,11 @@ data class Article(
     val description: String = "",
     val thumbnail: String? = null,
     val category: String = "other",
-    val featured: Boolean = false,
+    @Serializable(with = BooleanIntSerializer::class) val featured: Boolean = false,
     @SerialName("source_url") val sourceUrl: String? = null,
     @SerialName("source_name") val sourceName: String? = null,
     @SerialName("published_at") val publishedAt: String? = null,
+    @Serializable(with = BooleanIntSerializer::class)
     @SerialName("is_automated") val isAutomated: Boolean = false,
 )
 
@@ -29,12 +63,13 @@ data class ArticleDetail(
     val content: String = "",
     val thumbnail: String? = null,
     val category: String = "other",
-    val featured: Boolean = false,
+    @Serializable(with = BooleanIntSerializer::class) val featured: Boolean = false,
     @SerialName("source_url") val sourceUrl: String? = null,
     @SerialName("source_name") val sourceName: String? = null,
     @SerialName("published_at") val publishedAt: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null,
+    @Serializable(with = BooleanIntSerializer::class)
     @SerialName("is_automated") val isAutomated: Boolean = false,
 )
 

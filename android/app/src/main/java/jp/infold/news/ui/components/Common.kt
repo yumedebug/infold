@@ -116,7 +116,7 @@ fun GlassCard(
     val shape = RoundedCornerShape(16.dp)
     val base = Modifier
         .background(colors.surface, shape)
-        .border(1.dp, colors.glassBorder, shape)
+        .border(1.dp, colors.cardBorder, shape)
     val clickModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Column(
         modifier = modifier.then(base).then(clickModifier),
@@ -159,7 +159,7 @@ fun CategoryChip(
         modifier = modifier
             .clip(RoundedCornerShape(50))
             .background(bg)
-            .border(1.dp, if (selected) color else colors.glassBorder, RoundedCornerShape(50))
+            .border(1.dp, if (selected) color else colors.cardBorder, RoundedCornerShape(50))
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 7.dp),
     ) {
@@ -427,7 +427,7 @@ fun SubTopBar(
         modifier = modifier
             .fillMaxWidth()
             .background(colors.headerBackground)
-            .border(1.dp, colors.glassBorder, RoundedCornerShape(0.dp))
+            .border(1.dp, colors.cardBorder, RoundedCornerShape(0.dp))
             .padding(horizontal = 4.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

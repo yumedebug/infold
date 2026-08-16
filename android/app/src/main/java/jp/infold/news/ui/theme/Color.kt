@@ -3,8 +3,10 @@ package jp.infold.news.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // ============================================================
-// INFOLD Liquid Glass カラーパレット
-// Web 版（html/index.html の CSS 変数）と同一のデザイントークン
+// INFOLD カラーパレット（Android アプリ版）
+// ブランドカラー（シアン/マゼンタ）とダーク/ライトは Web 版と同系色を
+// 使いつつ、Android ではリキッドグラス（半透明・ガラス風）を使わない
+// ソリッドな配色にする。Web 版の CSS は変更しない。
 // ============================================================
 
 // ネオンアクセント
@@ -13,11 +15,11 @@ val NeonViolet = Color(0xFF8B5CFF)
 val NeonPink = Color(0xFFFF3D9A)
 val NeonGreen = Color(0xFF3DFFB8)
 
-// ---- Light テーマ ----
+// ---- Light テーマ（ソリッド） ----
 val LightBackground = Color(0xFFF4F8FF)
 val LightBackgroundSoft = Color(0xFFE9F0FD)
-val LightCard = Color(0x99FFFFFF) // rgba(255,255,255,.6)
-val LightCardHover = Color(0xC7FFFFFF) // rgba(255,255,255,.78)
+val LightCard = Color(0xFFFFFFFF)
+val LightCardHover = Color(0xFFF2F7FF)
 val LightText = Color(0xFF101828)
 val LightMuted = Color(0xFF56648A)
 val LightFaint = Color(0xFF8B97B8)
@@ -27,15 +29,14 @@ val LightPrimary2 = Color(0xFF6A4DFF)
 val LightAccent = Color(0xFFFF3D9A)
 val LightOk = Color(0xFF0A9E6D)
 val LightWarn = Color(0xFFD97706)
-val LightGlass = Color(0x8CFFFFFF) // rgba(255,255,255,.55)
-val LightGlassBorder = Color(0x1A101828) // rgba(16,24,40,.1)
-val LightGlassHi = Color(0x6BFFFFFF) // rgba(255,255,255,.42)
+val LightHeader = Color(0xFFFFFFFF)
+val LightCardBorder = Color(0xFFD9E4F6)
 
-// ---- Dark テーマ ----
+// ---- Dark テーマ（ソリッド） ----
 val DarkBackground = Color(0xFF05070F)
 val DarkBackgroundSoft = Color(0xFF0C1122)
-val DarkCard = Color(0x800E1426) // rgba(14,20,38,.5)
-val DarkCardHover = Color(0xB8151E38) // rgba(21,30,56,.72)
+val DarkCard = Color(0xFF121A2C)
+val DarkCardHover = Color(0xFF1A2438)
 val DarkText = Color(0xFFE6ECFF)
 val DarkMuted = Color(0xFF93A0C4)
 val DarkFaint = Color(0xFF6B7694)
@@ -45,9 +46,8 @@ val DarkPrimary2 = Color(0xFF8B5CFF)
 val DarkAccent = Color(0xFFFF3D9A)
 val DarkOk = Color(0xFF3DFFB8)
 val DarkWarn = Color(0xFFFFB020)
-val DarkGlass = Color(0x800A0F1E) // rgba(10,15,30,.5)
-val DarkGlassBorder = Color(0x1FFFFFFF) // rgba(255,255,255,.12)
-val DarkGlassHi = Color(0x17FFFFFF) // rgba(255,255,255,.09)
+val DarkHeader = Color(0xFF0B101C)
+val DarkCardBorder = Color(0xFF22304D)
 
 // ---- カテゴリカラー（Web 版のバッジ色と同一） ----
 val CategoryColors = mapOf(
@@ -82,8 +82,7 @@ data class InfoldColors(
     val accent: Color,
     val ok: Color,
     val warn: Color,
-    val glassBorder: Color,
-    val glassHighlight: Color,
+    val cardBorder: Color,
     val headerBackground: Color,
 )
 
@@ -101,9 +100,8 @@ val LightInfoldColors = InfoldColors(
     accent = LightAccent,
     ok = LightOk,
     warn = LightWarn,
-    glassBorder = LightGlassBorder,
-    glassHighlight = LightGlassHi,
-    headerBackground = LightGlass,
+    cardBorder = LightCardBorder,
+    headerBackground = LightHeader,
 )
 
 val DarkInfoldColors = InfoldColors(
@@ -120,7 +118,6 @@ val DarkInfoldColors = InfoldColors(
     accent = DarkAccent,
     ok = DarkOk,
     warn = DarkWarn,
-    glassBorder = DarkGlassBorder,
-    glassHighlight = DarkGlassHi,
-    headerBackground = DarkGlass,
+    cardBorder = DarkCardBorder,
+    headerBackground = DarkHeader,
 )

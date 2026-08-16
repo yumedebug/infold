@@ -94,7 +94,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(colors.headerBackground)
-                .border(1.dp, colors.glassBorder, androidx.compose.foundation.shape.RoundedCornerShape(0.dp))
+                .border(1.dp, colors.cardBorder, androidx.compose.foundation.shape.RoundedCornerShape(0.dp))
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
