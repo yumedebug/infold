@@ -25,7 +25,9 @@ if (hasKeystore) {
 
 android {
     namespace 'jp.infold.news'
-    compileSdk 35
+    // androidx.browser 1.9 系が compileSdk 36 以上を要求するため 36 を使用
+    // （targetSdk は 35 のまま。compileSdk と targetSdk は独立して設定できる）
+    compileSdk 36
 
     defaultConfig {
         applicationId 'jp.infold.news'
