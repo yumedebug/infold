@@ -81,6 +81,7 @@
     <string name="points_about_title">INFOLD POINTとは？</string>
     <string name="points_about1">INFOLDの記事を読むことでポイントを獲得できます。</string>
     <string name="points_about2">獲得したポイントを使用して、現在は「一時的な広告削除」を利用できます。</string>
+    <string name="points_about3">ポイントはINFOLD内で利用できるポイントであり、現金ではありません。</string>
     <string name="points_balance_label">現在のポイント</string>
     <string name="points_earn_rule">記事を開いて30秒以上経過し、本文の80%以上をスクロールすると +1 POINT を獲得できます。同じ記事は3時間ごとに再獲得できます。</string>
     <string name="points_ad_free_title">一時的な広告削除</string>

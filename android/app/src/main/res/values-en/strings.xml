@@ -81,6 +81,7 @@
     <string name="points_about_title">What is INFOLD POINT?</string>
     <string name="points_about1">Earn points by reading INFOLD articles.</string>
     <string name="points_about2">Earned points can currently be used for temporary ad removal.</string>
+    <string name="points_about3">Points are only usable inside INFOLD and have no cash value.</string>
     <string name="points_balance_label">Current points</string>
     <string name="points_earn_rule">Open an article for 30+ seconds and scroll through 80% of the body to earn +1 POINT. The same article can be re-earned once every 3 hours.</string>
     <string name="points_ad_free_title">Temporary Ad Removal</string>

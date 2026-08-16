@@ -100,8 +100,8 @@ fun BrandWordmark(modifier: Modifier = Modifier) {
         style = MaterialTheme.typography.titleLarge.copy(
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = 4.sp,
+            brush = Brush.horizontalGradient(listOf(colors.textPrimary, colors.primary)),
         ),
-        brush = Brush.horizontalGradient(listOf(colors.textPrimary, colors.primary)),
     )
 }
 
@@ -378,8 +378,11 @@ fun ErrorView(
     ) {
         Text(
             text = "INFOLD",
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 3.sp),
-            brush = Brush.horizontalGradient(listOf(colors.primary, colors.accent)),
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 3.sp,
+                brush = Brush.horizontalGradient(listOf(colors.primary, colors.accent)),
+            ),
         )
         Text(
             text = message,

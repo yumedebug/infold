@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -132,10 +133,17 @@ object ApiClient {
     // Public API
     // --------------------------------------------------------
 
-    suspend fun listArticles(page: Int = 1, limit: Int = 12, category: String? = null, featured: Boolean? = null): ArticleListResponse {
+    suspend fun listArticles(
+        page: Int = 1,
+        limit: Int = 12,
+        category: String? = null,
+        featured: Boolean? = null,
+        exclude: Long? = null,
+    ): ArticleListResponse {
         val sb = StringBuilder("/api/articles?page=$page&limit=$limit")
         if (!category.isNullOrBlank()) sb.append("&category=").append(category)
         if (featured != null) sb.append("&featured=").append(if (featured) "1" else "0")
+        if (exclude != null) sb.append("&exclude=").append(exclude)
         return request(sb.toString()) { decode(it) }
     }
 
