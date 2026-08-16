@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      TWA 起動直後のスプラッシュ / ステータスバー用テーマ。
-      INFOLD のダークデザインに合わせる。
+      起動直後のスプラッシュ / ウィンドウ背景用テーマ。
+      INFOLD のデザインに合わせ、ダーク/ライトは DayNight で切替える。
+      実際の描画はすべて Jetpack Compose のカスタムテーマで行う。
     -->
-    <style name="Theme.Infold" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.Infold" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/windowBackground</item>
-        <item name="android:statusBarColor">@color/colorPrimary</item>
-        <item name="android:navigationBarColor">@color/navigationColor</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:forceDarkAllowed">false</item>
     </style>
 </resources>

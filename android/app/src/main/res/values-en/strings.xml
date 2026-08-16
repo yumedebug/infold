@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">INFOLD</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_articles">Articles</string>
+    <string name="nav_categories">Categories</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_account">Account</string>
+    <string name="nav_points">INFOLD POINT</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_menu">Menu</string>
+
+    <!-- Common -->
+    <string name="common_loading">Loading…</string>
+    <string name="common_failed">Failed to load</string>
+    <string name="common_no_articles">No articles available</string>
+    <string name="common_load_more">Load more</string>
+    <string name="common_end_of_list">You have seen all articles</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_offline">Please open this app again somewhere with a network connection.</string>
+    <string name="common_back">Back</string>
+    <string name="common_close">Close</string>
+
+    <!-- Home -->
+    <string name="home_hero_tag">Featured story</string>
+    <string name="home_latest">Latest news</string>
+    <string name="home_featured">Featured Articles</string>
+    <string name="home_latest_articles">Latest Articles</string>
+    <string name="home_categories">Categories</string>
+    <string name="home_all_articles">All articles</string>
+
+    <!-- Articles -->
+    <string name="articles_title">All Articles</string>
+    <string name="articles_filter_all">All</string>
+
+    <!-- Search -->
+    <string name="search_title">Search</string>
+    <string name="search_placeholder">Enter keywords…</string>
+    <string name="search_submit">Search</string>
+    <string name="search_no_results">No articles found</string>
+    <string name="search_results_for">Results for “%1$s”</string>
+    <string name="search_results_count">%1$d articles found</string>
+    <string name="search_hint">Search across titles, summaries, content and categories</string>
+
+    <!-- Article detail -->
+    <string name="article_category">Category</string>
+    <string name="article_published">Published</string>
+    <string name="article_source">Source</string>
+    <string name="article_automated">Auto-generated</string>
+    <string name="article_featured">Featured</string>
+    <string name="article_related">Related articles</string>
+    <string name="article_no_related">No related articles</string>
+    <string name="article_read_original">Read the original article</string>
+    <string name="article_not_found">Article not found</string>
+    <string name="article_not_found_desc">This article was removed or does not exist.</string>
+    <string name="article_points_claimed">Article read complete (+1 POINT)</string>
+    <string name="article_points_already">Points already earned for this article</string>
+    <string name="article_points_login">Sign in to earn points by reading articles</string>
+
+    <!-- Account / Login -->
+    <string name="account_title">Account</string>
+    <string name="account_login_tab">Sign In</string>
+    <string name="account_register_tab">Sign Up</string>
+    <string name="account_email">Email</string>
+    <string name="account_password">Password</string>
+    <string name="account_name">Name (optional)</string>
+    <string name="account_login_desc">Sign in to check and use your points.</string>
+    <string name="account_register_desc">Create an account to earn points by reading articles.</string>
+    <string name="account_sign_in">Sign In</string>
+    <string name="account_register">Create Account</string>
+    <string name="account_logout">Sign Out</string>
+    <string name="account_logged_in_as">Signed in as %1$s</string>
+    <string name="account_email_taken">This email is already registered</string>
+    <string name="account_password_short">Password must be at least 8 characters</string>
+    <string name="account_invalid_credentials">Email or password is incorrect</string>
+    <string name="account_network_error">Network error: cannot reach the server</string>
+
+    <!-- Points -->
+    <string name="points_about_title">What is INFOLD POINT?</string>
+    <string name="points_about1">Earn points by reading INFOLD articles.</string>
+    <string name="points_about2">Earned points can currently be used for temporary ad removal.</string>
+    <string name="points_balance_label">Current points</string>
+    <string name="points_earn_rule">Open an article for 30+ seconds and scroll through 80% of the body to earn +1 POINT. The same article can be re-earned once every 3 hours.</string>
+    <string name="points_ad_free_title">Temporary Ad Removal</string>
+    <string name="points_ad_free_desc">Use points to hide INFOLD ads and promotions for a limited time.</string>
+    <string name="points_ad_free_auto">Display returns to normal automatically when the period ends.</string>
+    <string name="points_status_label">Ad-free mode</string>
+    <string name="points_status_on">ON</string>
+    <string name="points_status_off">OFF</string>
+    <string name="points_remaining">Time remaining: %1$s</string>
+    <string name="points_plan_points">Points required</string>
+    <string name="points_plan_duration">Hidden duration</string>
+    <string name="points_dur_6h">6 hours</string>
+    <string name="points_dur_24h">24 hours</string>
+    <string name="points_dur_7d">7 days</string>
+    <string name="points_use">Use</string>
+    <string name="points_confirm">Use %1$d POINT to hide ads for %2$s?</string>
+    <string name="points_insufficient">Not enough points</string>
+    <string name="points_used">Ad removal started</string>
+    <string name="points_login_required">Please sign in to use the points feature</string>
+    <string name="points_login_cta">Sign in / Sign up</string>
+    <string name="points_history_title">Point history</string>
+    <string name="points_history_read">Read an article</string>
+    <string name="points_history_ad_free">Used ad removal</string>
+    <string name="points_history_empty">No point history yet</string>
+    <string name="points_history_reason">%1$s</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_language">Language / 言語</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_notifications">Push notifications</string>
+    <string name="settings_notifications_desc">Get notified when a new article is published</string>
+    <string name="settings_notifications_on">ON</string>
+    <string name="settings_notifications_off">OFF</string>
+    <string name="settings_permission_required">Enable notifications in your device settings to receive alerts</string>
+    <string name="settings_about">About this app</string>
+    <string name="settings_about_desc">INFOLD is a news app delivering the latest technology news every day. It provides the same articles and features as the web version (infold.f5.si) in a native experience.</string>
+    <string name="settings_version">Version</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">New articles</string>
+    <string name="notification_channel_desc">Notifications when new articles are published</string>
+    <string name="notification_title">INFOLD</string>
+    <string name="notification_body">A new article has been published</string>
+
+    <!-- Meta -->
+    <string name="meta_home_desc">A news media delivering the latest technology news in IT, AI, Windows, Android, Apple, Web and Programming every day.</string>
+</resources>

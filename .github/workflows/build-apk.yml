@@ -1,21 +1,23 @@
 # ============================================================
-# INFOLD Android APK ビルドワークフロー
+# INFOLD Android アプリ ビルドワークフロー
 # ------------------------------------------------------------
 # ローカルの PC に Android Studio / Android SDK がなくても、
-# GitHub 上（ubuntu-latest）で APK をビルドして Artifact として
-# 保存する。
+# GitHub 上（ubuntu-latest）で以下をビルドして Artifact として保存する。
+#   - Debug APK
+#   - Release APK
+#   - Release AAB（Google Play 提出用）
 #
 # トリガー:
 #   - main ブランチへの push（android/ または本ファイルの変更時）
 #   - GitHub Actions 画面からの手動実行（workflow_dispatch）
 #
 # 署名について:
-#   GitHub Secrets に下記を設定すると、Release 署名付き APK を生成する。
+#   GitHub Secrets に下記を設定すると、Release 署名付き APK/AAB を生成する。
 #     ANDROID_KEYSTORE_BASE64    keystore ファイルを base64 エンコードした文字列
 #     ANDROID_KEYSTORE_PASSWORD  keystore / 鍵のパスワード
 #     ANDROID_KEY_ALIAS          鍵のエイリアス（例: infold）
-#   Secrets が無い場合は debug 鍵で署名した APK を生成する
-#   （実機テスト用。TWA 検証は通らないためアプリ内 WebView で表示）。
+#   Secrets が無い場合は debug 鍵で署名した APK/AAB を生成する
+#   （実機テスト用。Google Play に提出する場合は署名鍵が必要）。
 #   署名鍵はリポジトリにコミットせず、必ず Secrets で管理する。
 #
 #   keystore の生成は「Generate release keystore」ワークフロー
@@ -43,7 +45,7 @@ env:
 
 jobs:
   build-apk:
-    name: Build APK
+    name: Build APK / AAB
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -79,14 +81,14 @@ jobs:
             2>/dev/null | grep -A1 'SHA256:' | head -2
           echo "::endgroup::"
 
-      # ---- 5. Gradle ビルド（Release APK を生成） ----
-      - name: Build release APK
+      # ---- 5. Gradle ビルド（Debug APK / Release APK / Release AAB） ----
+      - name: Build APKs and AAB
         working-directory: android
         run: |
           # Windows 環境で git add された場合に実行権限が失われることがあるため明示的に付与
           chmod +x gradlew
           # ログをファイルにも残す（失敗時の原因調査用）
-          ./gradlew :app:assembleRelease --stacktrace 2>&1 | tee build.log
+          ./gradlew :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace 2>&1 | tee build.log
           exit ${PIPESTATUS[0]}
 
       # ---- 失敗時にビルドログを Artifact として保存（原因調査用） ----
@@ -99,37 +101,50 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      # ---- 署名フィンガープリントの表示（assetlinks.json に使う値） ----
+      # ---- 署名フィンガープリントの表示 ----
       - name: Print signing fingerprint
         if: always()
         working-directory: android
         run: |
           APK=$(ls app/build/outputs/apk/release/*.apk 2>/dev/null | head -1)
           if [ -n "$APK" ]; then
-            echo "署名フィンガープリント（.well-known/assetlinks.json の sha256_cert_fingerprints に記載する値）:"
+            echo "署名フィンガープリント:"
             keytool -printcert -jarfile "$APK" 2>/dev/null | grep -A1 'SHA256:' | head -2 || true
           fi
 
-      # ---- 6. APK を Artifact として保存 ----
-      - name: Upload APK artifact
+      # ---- 6. ビルド成果物を Artifact として保存 ----
+      - name: Upload Debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: infold-apk
-          path: android/app/build/outputs/apk/release/*.apk
+          name: infold-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
 
-      # ---- 7. GitHub Releases にも APK を公開（ダウンロードしやすくするため） ----
-      - name: Publish APK to GitHub Releases
+      - name: Upload Release APK + AAB artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: infold-release
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      # ---- 7. GitHub Releases にも公開（ダウンロードしやすくするため） ----
+      - name: Publish to GitHub Releases
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
         working-directory: android
         run: |
           APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
+          AAB=$(ls app/build/outputs/bundle/release/*.aab 2>/dev/null | head -1)
+          ASSETS="$APK"
+          if [ -n "$AAB" ]; then ASSETS="$ASSETS $AAB"; fi
           gh release create \
-            "v1.0.0-${{ github.run_number }}" \
-            "$APK" \
-            --title "INFOLD APK (ビルド #${{ github.run_number }})" \
-            --notes "GitHub Actions で自動ビルドされた INFOLD Android アプリ (APK)。" \
+            "v2.0.0-${{ github.run_number }}" \
+            $ASSETS \
+            --title "INFOLD ネイティブアプリ (ビルド #${{ github.run_number }})" \
+            --notes "GitHub Actions で自動ビルドされた INFOLD ネイティブ Android アプリ（APK / AAB）。" \
             --repo "${{ github.repository }}"

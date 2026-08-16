@@ -40,6 +40,12 @@ import {
   getPointsSummary,
   requireReader,
 } from './points.js';
+import {
+  registerPushDevice,
+  unregisterPushDevice,
+  handlePushNotifications,
+  notifyArticlePublished,
+} from './push.js';
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_UPLOAD_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
@@ -69,6 +75,13 @@ export default {
           path === '/api/points/ad-free' || /^\/api\/articles\/\d+\/complete$/.test(path)
         ) {
           return handleReader(request, env, url, path, method);
+        }
+        // ---- push notification device tokens (Android app) ----
+        if (method === 'POST' && (path === '/api/push/register' || path === '/api/push/unregister')) {
+          if (!csrfOk(request, env, url)) return json({ error: 'csrf_rejected' }, 403);
+          return path === '/api/push/register'
+            ? registerPushDevice(request, env)
+            : unregisterPushDevice(request, env);
         }
         if (path.startsWith('/api/admin')) return handleAdmin(request, env, url, path, method);
         return json({ error: 'not_found' }, 404);
@@ -124,6 +137,12 @@ export default {
     ctx.waitUntil(
       handleScheduled(env).catch((err) => {
         console.error('Scheduled automation error:', err);
+      })
+    );
+    // 新着記事の FCM プッシュ通知（未設定時は何もしない）
+    ctx.waitUntil(
+      handlePushNotifications(env).catch((err) => {
+        console.error('Scheduled push error:', err);
       })
     );
   },
@@ -452,7 +471,12 @@ async function adminCreateArticle(env, request) {
     data.status, data.featured, data.sourceUrl, data.sourceName, publishedAt,
     nowISO(), nowISO()
   ).run();
-  return json({ ok: true, id: Number(res.meta.last_row_id) }, 201);
+  const articleId = Number(res.meta.last_row_id);
+  // 公開された記事は Android アプリへプッシュ通知（ベストエフォート）
+  if (data.status === 'published') {
+    await notifyArticlePublished(env, articleId);
+  }
+  return json({ ok: true, id: articleId }, 201);
 }
 
 async function adminUpdateArticle(env, request, path) {
@@ -473,6 +497,10 @@ async function adminUpdateArticle(env, request, path) {
     data.status, data.featured, data.sourceUrl, data.sourceName, publishedAt,
     nowISO(), id
   ).run();
+  // 下書き→公開になった記事は Android アプリへプッシュ通知（ベストエフォート）
+  if (data.status === 'published' && existing.status !== 'published') {
+    await notifyArticlePublished(env, id);
+  }
   return json({ ok: true, id });
 }
 

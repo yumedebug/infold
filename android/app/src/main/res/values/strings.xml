@@ -1,16 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- ランチャーに表示されるアプリ名 -->
     <string name="app_name">INFOLD</string>
 
-    <!--
-      TWA 検証用のアセット宣言（JSON）。
-      このアプリが https://infold.f5.si/ を信頼することを宣言する。
-      サイト側の .well-known/assetlinks.json には、このアプリの
-      パッケージ名（jp.infold.news）と署名鍵の SHA-256
-      フィンガープリントが記載されている必要がある。
-    -->
-    <string name="asset_statements" translatable="false">
-        [{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"web","site":"https://infold.f5.si"}}]
-    </string>
+    <!-- Navigation -->
+    <string name="nav_home">ホーム</string>
+    <string name="nav_articles">記事</string>
+    <string name="nav_categories">カテゴリ</string>
+    <string name="nav_search">検索</string>
+    <string name="nav_account">アカウント</string>
+    <string name="nav_points">INFOLD POINT</string>
+    <string name="nav_settings">設定</string>
+    <string name="nav_menu">メニュー</string>
+
+    <!-- Common -->
+    <string name="common_loading">読み込み中…</string>
+    <string name="common_failed">読み込みに失敗しました</string>
+    <string name="common_no_articles">記事がありません</string>
+    <string name="common_load_more">もっと見る</string>
+    <string name="common_end_of_list">すべての記事を表示しました</string>
+    <string name="common_retry">再読み込み</string>
+    <string name="common_offline">ネットワーク環境が整った場所でこちらのアプリを再度開き直してください。</string>
+    <string name="common_back">戻る</string>
+    <string name="common_close">閉じる</string>
+
+    <!-- Home -->
+    <string name="home_hero_tag">注目の記事</string>
+    <string name="home_latest">最新ニュース</string>
+    <string name="home_featured">おすすめ記事</string>
+    <string name="home_latest_articles">最新記事</string>
+    <string name="home_categories">カテゴリ</string>
+    <string name="home_all_articles">すべての記事</string>
+
+    <!-- Articles -->
+    <string name="articles_title">記事一覧</string>
+    <string name="articles_filter_all">すべて</string>
+
+    <!-- Search -->
+    <string name="search_title">検索</string>
+    <string name="search_placeholder">キーワードを入力…</string>
+    <string name="search_submit">検索</string>
+    <string name="search_no_results">記事が見つかりませんでした</string>
+    <string name="search_results_for">「%1$s」の検索結果</string>
+    <string name="search_results_count">%1$d件の記事が見つかりました</string>
+    <string name="search_hint">タイトル・概要・本文・カテゴリから検索できます</string>
+
+    <!-- Article detail -->
+    <string name="article_category">カテゴリ</string>
+    <string name="article_published">公開日</string>
+    <string name="article_source">情報源</string>
+    <string name="article_automated">自動生成</string>
+    <string name="article_featured">おすすめ</string>
+    <string name="article_related">関連記事</string>
+    <string name="article_no_related">関連記事はありません</string>
+    <string name="article_read_original">元記事を読む</string>
+    <string name="article_not_found">記事が見つかりません</string>
+    <string name="article_not_found_desc">この記事は削除されたか、存在しません。</string>
+    <string name="article_points_claimed">記事を読了しました (+1 POINT)</string>
+    <string name="article_points_already">この記事のポイントは獲得済みです</string>
+    <string name="article_points_login">ログインすると記事を読んでポイントを貯められます</string>
+
+    <!-- Account / Login -->
+    <string name="account_title">アカウント</string>
+    <string name="account_login_tab">ログイン</string>
+    <string name="account_register_tab">新規登録</string>
+    <string name="account_email">メールアドレス</string>
+    <string name="account_password">パスワード</string>
+    <string name="account_name">名前（任意）</string>
+    <string name="account_login_desc">ログインしてポイントを確認・利用できます。</string>
+    <string name="account_register_desc">アカウントを作成すると、記事を読んでポイントを貯められます。</string>
+    <string name="account_sign_in">ログイン</string>
+    <string name="account_register">アカウント作成</string>
+    <string name="account_logout">ログアウト</string>
+    <string name="account_logged_in_as">ログイン中：%1$s</string>
+    <string name="account_email_taken">このメールアドレスは既に登録されています</string>
+    <string name="account_password_short">パスワードは8文字以上にしてください</string>
+    <string name="account_invalid_credentials">メールアドレスまたはパスワードが正しくありません</string>
+    <string name="account_network_error">ネットワークエラー：サーバーに接続できません</string>
+
+    <!-- Points -->
+    <string name="points_about_title">INFOLD POINTとは？</string>
+    <string name="points_about1">INFOLDの記事を読むことでポイントを獲得できます。</string>
+    <string name="points_about2">獲得したポイントを使用して、現在は「一時的な広告削除」を利用できます。</string>
+    <string name="points_balance_label">現在のポイント</string>
+    <string name="points_earn_rule">記事を開いて30秒以上経過し、本文の80%以上をスクロールすると +1 POINT を獲得できます。同じ記事は3時間ごとに再獲得できます。</string>
+    <string name="points_ad_free_title">一時的な広告削除</string>
+    <string name="points_ad_free_desc">ポイントを使って、一定時間INFOLDの広告・プロモーションを非表示にできます。</string>
+    <string name="points_ad_free_auto">期間終了後は自動的に通常の表示へ戻ります。</string>
+    <string name="points_status_label">広告なしモード</string>
+    <string name="points_status_on">ON</string>
+    <string name="points_status_off">OFF</string>
+    <string name="points_remaining">残り時間：%1$s</string>
+    <string name="points_plan_points">必要ポイント</string>
+    <string name="points_plan_duration">非表示時間</string>
+    <string name="points_dur_6h">6時間</string>
+    <string name="points_dur_24h">24時間</string>
+    <string name="points_dur_7d">7日間</string>
+    <string name="points_use">利用する</string>
+    <string name="points_confirm">%1$d POINTを使用して広告を%2$s非表示にしますか？</string>
+    <string name="points_insufficient">ポイントが不足しています</string>
+    <string name="points_used">広告なしを開始しました</string>
+    <string name="points_login_required">ポイント機能を利用するにはログインが必要です</string>
+    <string name="points_login_cta">ログイン / 新規登録</string>
+    <string name="points_history_title">ポイント履歴</string>
+    <string name="points_history_read">記事を読了</string>
+    <string name="points_history_ad_free">広告なしを利用</string>
+    <string name="points_history_empty">まだポイント履歴がありません</string>
+    <string name="points_history_reason">%1$s</string>
+
+    <!-- Settings -->
+    <string name="settings_title">設定</string>
+    <string name="settings_language">言語 / Language</string>
+    <string name="settings_theme">テーマ</string>
+    <string name="settings_theme_dark">ダーク</string>
+    <string name="settings_theme_light">ライト</string>
+    <string name="settings_theme_system">自動</string>
+    <string name="settings_notifications">プッシュ通知</string>
+    <string name="settings_notifications_desc">新しい記事が公開されたら通知でお知らせします</string>
+    <string name="settings_notifications_on">ON</string>
+    <string name="settings_notifications_off">OFF</string>
+    <string name="settings_permission_required">通知を有効にするには端末の設定で許可が必要です</string>
+    <string name="settings_about">このアプリについて</string>
+    <string name="settings_about_desc">INFOLD はテクノロジーニュースを毎日お届けするニュースアプリです。Web版（infold.f5.si）と同じ記事・機能をネイティブで提供します。</string>
+    <string name="settings_version">バージョン</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">新着記事</string>
+    <string name="notification_channel_desc">新しい記事が公開されたときの通知</string>
+    <string name="notification_title">INFOLD</string>
+    <string name="notification_body">新しい記事が公開されました</string>
+
+    <!-- Meta -->
+    <string name="meta_home_desc">IT・AI・Windows・Android・Apple・Web・プログラミングの最新ニュースを毎日お届けするニュースメディア。</string>
 </resources>
