@@ -206,7 +206,7 @@ fun CategoryChip(
         modifier = modifier
             .clip(RoundedCornerShape(50))
             .background(
-                if (selected) bg
+                if (selected) Brush.horizontalGradient(listOf(bg, bg))
                 else Brush.verticalGradient(listOf(colors.surface, colors.surface.copy(alpha = 0.8f)))
             )
             .border(1.dp, if (selected) color else colors.glassBorder, RoundedCornerShape(50))
@@ -582,7 +582,7 @@ fun FloatingBottomNavBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, bottom = 12.dp),
+            .padding(start = 24.dp, end = 24.dp, bottom = 12.dp),
         contentAlignment = Alignment.BottomCenter,
     ) {
         Row(
