@@ -203,6 +203,16 @@ object ApiClient {
         }
     }
 
+    /** 広告非表示状態を取得（ポイント API から判定） */
+    suspend fun adFreeStatus(): Boolean {
+        return try {
+            val summary = points()
+            summary.adFree?.active == true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     /** 画像URLを解決する（相対パス → 絶対URL、data URI → ByteArray） */
     fun resolveImage(raw: String?): Any? {
         if (raw.isNullOrBlank()) return null

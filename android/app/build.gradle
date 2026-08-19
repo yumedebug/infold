@@ -50,8 +50,8 @@ android {
         applicationId 'jp.infold.news'
         minSdk 26
         targetSdk 35
-        versionCode 4
-        versionName '2.0.2'
+        versionCode 5
+        versionName '3.0.0'
     }
 
     signingConfigs {
@@ -129,4 +129,7 @@ dependencies {
     // ---- Firebase Cloud Messaging（google-services.json なしでも動作） ----
     implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-messaging'
+
+    // ---- AdMob（広告表示） ----
+    implementation 'com.google.android.gms:play-services-ads:23.6.0'
 }

@@ -36,6 +36,7 @@ import jp.infold.news.data.Article
 import jp.infold.news.ui.components.ArticleRowCard
 import jp.infold.news.ui.components.EmptyView
 import jp.infold.news.ui.components.ErrorView
+import jp.infold.news.ui.ads.InfoldAdBanner
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.theme.LocalInfoldColors
 
@@ -46,6 +47,7 @@ import jp.infold.news.ui.theme.LocalInfoldColors
 @Composable
 fun SearchScreen(
     lang: String,
+    adFree: Boolean,
     onOpenArticle: (Long) -> Unit,
 ) {
     val colors = LocalInfoldColors.current
@@ -124,13 +126,23 @@ fun SearchScreen(
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
                     )
                 }
-                items(results, key = { it.id }) { article ->
-                    ArticleRowCard(
-                        article = article,
-                        lang = lang,
-                        onClick = { onOpenArticle(article.id) },
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-                    )
+                results.forEachIndexed { index, article ->
+                    item(key = "article-${article.id}") {
+                        ArticleRowCard(
+                            article = article,
+                            lang = lang,
+                            onClick = { onOpenArticle(article.id) },
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                        )
+                    }
+                    if (adFree.not() && (index + 1) % 4 == 0 && index < results.lastIndex) {
+                        item(key = "ad-search-$index") {
+                            InfoldAdBanner(
+                                adFree = adFree,
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                            )
+                        }
+                    }
                 }
                 item(key = "bottom") { Spacer(Modifier.height(20.dp)) }
             }

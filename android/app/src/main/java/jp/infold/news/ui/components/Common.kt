@@ -1,5 +1,9 @@
 package jp.infold.news.ui.components
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -35,12 +41,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -61,8 +70,37 @@ import jp.infold.news.util.formatPublishedAt
 import kotlinx.coroutines.launch
 
 // ============================================================
-// INFOLD 共通 UI コンポーネント（Liquid Glass デザイン）
+// INFOLD 共通 UI コンポーネント — Liquid Glass デザイン
+// 半透明カード + ガラスボーダー + ハイライト + ブラー効果
 // ============================================================
+
+/** Liquid Glass モディファイア — 半透明背景 + ガラスボーダー + ハイライト */
+@Composable
+fun Modifier.glassSurface(
+    cornerRadius: Dp = 16.dp,
+): Modifier {
+    val colors = LocalInfoldColors.current
+    val shape = RoundedCornerShape(cornerRadius)
+    return this
+        .background(
+            brush = Brush.verticalGradient(
+                0f to colors.surface,
+                0.5f to colors.surface.copy(alpha = 0.92f),
+                1f to colors.surface.copy(alpha = 0.85f),
+            ),
+            shape = shape,
+        )
+        .border(1.dp, colors.glassBorder, shape)
+        .drawBehind {
+            // 上端ハイライト（ガラスの光沢）
+            drawLine(
+                color = colors.glassHighlight,
+                start = Offset(size.width * 0.15f, 0f),
+                end = Offset(size.width * 0.85f, 0f),
+                strokeWidth = 1.5.dp.toPx(),
+            )
+        }
+}
 
 /** Web 版のロゴマーク（グラデーションの角丸四角 + 白いドキュメント） */
 @Composable
@@ -113,7 +151,7 @@ fun BrandWordmark(modifier: Modifier = Modifier) {
     )
 }
 
-/** Liquid Glass カード（半透明 + ガラス風ボーダー） */
+/** Liquid Glass カード（半透明 + ガラス風ボーダー + ハイライト） */
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
@@ -122,23 +160,24 @@ fun GlassCard(
 ) {
     val colors = LocalInfoldColors.current
     val shape = RoundedCornerShape(16.dp)
-    val base = Modifier
-        .background(colors.surface, shape)
-        .border(1.dp, colors.cardBorder, shape)
     val clickModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Column(
-        modifier = modifier.then(base).then(clickModifier),
+        modifier = modifier
+            .glassSurface(16.dp)
+            .then(clickModifier),
         content = content,
     )
 }
 
-/** カテゴリバッジ（Web 版 .badge-* と同様の色） */
+/** カテゴリバッジ */
 @Composable
 fun CategoryBadge(slug: String, name: String, modifier: Modifier = Modifier) {
+    val colors = LocalInfoldColors.current
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(7.dp))
             .background(categorySoftColor(slug))
+            .border(0.5.dp, categoryColor(slug).copy(alpha = 0.3f), RoundedCornerShape(7.dp))
             .padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -166,8 +205,11 @@ fun CategoryChip(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))
-            .background(bg)
-            .border(1.dp, if (selected) color else colors.cardBorder, RoundedCornerShape(50))
+            .background(
+                if (selected) bg
+                else Brush.verticalGradient(listOf(colors.surface, colors.surface.copy(alpha = 0.8f)))
+            )
+            .border(1.dp, if (selected) color else colors.glassBorder, RoundedCornerShape(50))
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 7.dp),
     ) {
@@ -386,7 +428,7 @@ fun LoadingView(modifier: Modifier = Modifier) {
     }
 }
 
-/** エラー表示（オフライン時は専用メッセージ）。debug に技術情報を出すと原因特定が容易 */
+/** エラー表示 */
 @Composable
 fun ErrorView(
     message: String,
@@ -434,8 +476,6 @@ fun ErrorView(
                     .padding(horizontal = 24.dp, vertical = 10.dp),
             )
         }
-
-        // 接続テスト（端末から API を直接叩いて結果を表示）
         val scope = rememberCoroutineScope()
         var testing by remember { mutableStateOf(false) }
         var testResult by remember { mutableStateOf<String?>(null) }
@@ -476,7 +516,7 @@ fun EmptyView(message: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** サブ画面用のトップバー（戻る + タイトル） */
+/** サブ画面用のトップバー（Liquid Glass ヘッダー） */
 @Composable
 fun SubTopBar(
     title: String,
@@ -488,8 +528,7 @@ fun SubTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(colors.headerBackground)
-            .border(1.dp, colors.cardBorder, RoundedCornerShape(0.dp))
+            .glassSurface(0.dp)
             .padding(horizontal = 4.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -510,11 +549,129 @@ fun SubTopBar(
     }
 }
 
-/** アカウント/ポイントアイコン（ホームヘッダー用） */
+/** アカウントアイコン（ホームヘッダー用） */
 @Composable
 fun AccountIconButton(onClick: () -> Unit) {
     val colors = LocalInfoldColors.current
     IconButton(onClick = onClick) {
         Icon(Icons.Filled.Person, contentDescription = null, tint = colors.textSecondary)
+    }
+}
+
+// ============================================================
+// フローティング型 Liquid Glass ナビゲーションバー
+// 画面下部から少し浮いた横長カプセル型
+// ============================================================
+
+data class FloatingNavItem(
+    val route: String,
+    val labelRes: Int,
+    val icon: ImageVector,
+)
+
+@Composable
+fun FloatingBottomNavBar(
+    items: List<FloatingNavItem>,
+    currentRoute: String?,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalInfoldColors.current
+    val shape = RoundedCornerShape(28.dp)
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, bottom = 12.dp),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .clip(shape)
+                .background(
+                    brush = Brush.verticalGradient(
+                        0f to colors.surface.copy(alpha = 0.95f),
+                        1f to colors.surface.copy(alpha = 0.82f),
+                    )
+                )
+                .border(1.dp, colors.glassBorder, shape)
+                .drawBehind {
+                    // 上端ハイライト（ガラスの光沢）
+                    drawLine(
+                        color = colors.glassHighlight,
+                        start = Offset(size.width * 0.1f, 0.5.dp.toPx()),
+                        end = Offset(size.width * 0.9f, 0.5.dp.toPx()),
+                        strokeWidth = 1.dp.toPx(),
+                    )
+                }
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            items.forEach { item ->
+                val selected = when {
+                    item.route == "articles" -> currentRoute?.startsWith("articles") == true
+                    else -> currentRoute == item.route
+                }
+                FloatingNavItemButton(
+                    item = item,
+                    selected = selected,
+                    onClick = { onSelect(item.route) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FloatingNavItemButton(
+    item: FloatingNavItem,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val colors = LocalInfoldColors.current
+    val context = LocalContext.current
+    val indicatorAlpha by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = tween(durationMillis = 250, easing = LinearEasing),
+        label = "indicator",
+    )
+    val iconScale by animateFloatAsState(
+        targetValue = if (selected) 1.15f else 1f,
+        animationSpec = tween(durationMillis = 250, easing = LinearEasing),
+        label = "icon",
+    )
+    val label = remember(item.labelRes) { context.getString(item.labelRes) }
+
+    Box(
+        modifier = Modifier
+            .size(width = 56.dp, height = 48.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                color = colors.primary.copy(alpha = 0.18f * indicatorAlpha),
+            )
+            .clickable(onClick = onClick)
+            .padding(vertical = 6.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Icon(
+                imageVector = item.icon,
+                contentDescription = null,
+                tint = if (selected) colors.primary else colors.textFaint,
+                modifier = Modifier.size((22 * iconScale).dp),
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                color = if (selected) colors.primary else colors.textFaint,
+                maxLines = 1,
+            )
+        }
     }
 }

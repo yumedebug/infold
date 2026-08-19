@@ -7,13 +7,9 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -22,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -41,27 +36,25 @@ import jp.infold.news.ui.account.AccountScreen
 import jp.infold.news.ui.article.ArticleDetailScreen
 import jp.infold.news.ui.articles.ArticlesScreen
 import jp.infold.news.ui.categories.CategoriesScreen
+import jp.infold.news.ui.components.FloatingBottomNavBar
+import jp.infold.news.ui.components.FloatingNavItem
 import jp.infold.news.ui.home.HomeScreen
 import jp.infold.news.ui.login.LoginScreen
 import jp.infold.news.ui.points.PointsScreen
 import jp.infold.news.ui.search.SearchScreen
 import jp.infold.news.ui.settings.SettingsScreen
-import jp.infold.news.ui.theme.LocalInfoldColors
-import jp.infold.news.util.categoryDisplayName
 
 // ============================================================
 // 画面遷移の定義（Jetpack Compose Navigation）
-// 戻るボタンはナビゲーションスタックの自然な挙動で動作する
+// 下部ナビゲーションはフローティング型 Liquid Glass カプセル
 // ============================================================
 
-private data class TabItem(val route: String, val labelRes: Int, val icon: ImageVector)
-
-private val tabItems = listOf(
-    TabItem("home", R.string.nav_home, Icons.Filled.Home),
-    TabItem("articles", R.string.nav_articles, Icons.Filled.List),
-    TabItem("categories", R.string.nav_categories, Icons.Filled.Menu),
-    TabItem("search", R.string.nav_search, Icons.Filled.Search),
-    TabItem("account", R.string.nav_account, Icons.Filled.Person),
+private val bottomNavItems = listOf(
+    FloatingNavItem("home", R.string.nav_home, Icons.Filled.Home),
+    FloatingNavItem("articles", R.string.nav_articles, Icons.Filled.List),
+    FloatingNavItem("categories", R.string.nav_categories, Icons.Filled.Menu),
+    FloatingNavItem("search", R.string.nav_search, Icons.Filled.Search),
+    FloatingNavItem("account", R.string.nav_account, Icons.Filled.Person),
 )
 
 @Composable
@@ -71,6 +64,7 @@ fun InfoldNavHost(viewModel: AppViewModel) {
     val categories by viewModel.categories.collectAsState()
     val language by viewModel.language.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
+    val adFree by viewModel.adFree.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
@@ -83,7 +77,7 @@ fun InfoldNavHost(viewModel: AppViewModel) {
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val showBottomBar = currentRoute in tabItems.map { it.route } ||
+    val showBottomBar = currentRoute in bottomNavItems.map { it.route } ||
         currentRoute?.startsWith("articles") == true
 
     Scaffold(
@@ -91,7 +85,8 @@ fun InfoldNavHost(viewModel: AppViewModel) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (showBottomBar) {
-                BottomNavBar(
+                FloatingBottomNavBar(
+                    items = bottomNavItems,
                     currentRoute = currentRoute,
                     onSelect = { route -> selectTab(navController, route) },
                 )
@@ -108,6 +103,7 @@ fun InfoldNavHost(viewModel: AppViewModel) {
                     HomeScreen(
                         lang = language,
                         categories = categories,
+                        adFree = adFree,
                         onOpenArticle = { id -> navController.navigate("article/$id") },
                         onOpenArticles = { selectTab(navController, "articles") },
                         onOpenCategory = { slug -> openCategory(navController, slug) },
@@ -129,6 +125,7 @@ fun InfoldNavHost(viewModel: AppViewModel) {
                         lang = language,
                         categories = categories,
                         initialCategory = entry.arguments?.getString("category"),
+                        adFree = adFree,
                         onOpenArticle = { id -> navController.navigate("article/$id") },
                     )
                 }
@@ -144,6 +141,7 @@ fun InfoldNavHost(viewModel: AppViewModel) {
                 composable("search") {
                     SearchScreen(
                         lang = language,
+                        adFree = adFree,
                         onOpenArticle = { id -> navController.navigate("article/$id") },
                     )
                 }
@@ -200,37 +198,12 @@ fun InfoldNavHost(viewModel: AppViewModel) {
                         lang = language,
                         isLoggedIn = authState is AuthState.LoggedIn,
                         categories = categories,
+                        adFree = adFree,
                         onBack = { navController.popBackStack() },
                         onOpenArticle = { id -> navController.navigate("article/$id") },
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun BottomNavBar(currentRoute: String?, onSelect: (String) -> Unit) {
-    val colors = LocalInfoldColors.current
-    NavigationBar(containerColor = colors.headerBackground) {
-        tabItems.forEach { item ->
-            val selected = when {
-                item.route == "articles" -> currentRoute?.startsWith("articles") == true
-                else -> currentRoute == item.route
-            }
-            NavigationBarItem(
-                selected = selected,
-                onClick = { onSelect(item.route) },
-                icon = { Icon(item.icon, contentDescription = null) },
-                label = { Text(stringResource(item.labelRes)) },
-                colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
-                    selectedIconColor = colors.primary,
-                    selectedTextColor = colors.primary,
-                    indicatorColor = colors.primary.copy(alpha = 0.15f),
-                    unselectedIconColor = colors.textFaint,
-                    unselectedTextColor = colors.textFaint,
-                ),
-            )
         }
     }
 }

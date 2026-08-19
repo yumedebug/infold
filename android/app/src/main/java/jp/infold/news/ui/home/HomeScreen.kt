@@ -34,11 +34,14 @@ import jp.infold.news.data.ApiClient
 import jp.infold.news.data.Article
 import jp.infold.news.data.Category
 import jp.infold.news.ui.UiState
+import jp.infold.news.ui.ads.InfoldAdBanner
 import jp.infold.news.ui.components.ArticleRowCard
 import jp.infold.news.ui.components.BrandLogo
 import jp.infold.news.ui.components.BrandWordmark
 import jp.infold.news.ui.components.CategoryChip
+import jp.infold.news.ui.components.glassSurface
 import jp.infold.news.ui.components.ErrorView
+import jp.infold.news.ui.components.GlassCard
 import jp.infold.news.ui.components.HeroCard
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.components.SectionTitle
@@ -46,8 +49,8 @@ import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.categoryDisplayName
 
 // ============================================================
-// ホーム（ネイティブ UI）
-// 注目記事（ヒーロー）+ 最新ニュース + カテゴリ
+// ホーム（Liquid Glass UI）
+// 注目記事（ヒーロー）+ 最新ニュース + 広告 + カテゴリ
 // ============================================================
 
 private data class HomeData(
@@ -60,6 +63,7 @@ private data class HomeData(
 fun HomeScreen(
     lang: String,
     categories: List<Category>,
+    adFree: Boolean,
     onOpenArticle: (Long) -> Unit,
     onOpenArticles: () -> Unit,
     onOpenCategory: (String) -> Unit,
@@ -75,7 +79,6 @@ fun HomeScreen(
         state = try {
             val featured = ApiClient.listArticles(page = 1, limit = 3, featured = true).articles
             val latest = ApiClient.listArticles(page = 1, limit = 11).articles
-            // 注目記事が無い場合は最新記事をヒーローに使う
             val hero = featured.firstOrNull() ?: latest.firstOrNull()
             val latestFiltered = latest.filter { it.id != hero?.id }
             UiState.Ready(HomeData(hero = hero, latest = latestFiltered, featured = featured))
@@ -92,12 +95,11 @@ fun HomeScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
-        // ヘッダー
+        // ヘッダー（Liquid Glass）
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(colors.headerBackground)
-                .border(1.dp, colors.cardBorder, androidx.compose.foundation.shape.RoundedCornerShape(0.dp))
+                .glassSurface(0.dp)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -135,7 +137,7 @@ fun HomeScreen(
                         }
                     }
 
-                    // 最新ニュース
+                    // 最新ニュース（広告を交互に挿入）
                     item(key = "latest-title") {
                         SectionTitle(
                             title = context.getString(R.string.home_latest),
@@ -144,13 +146,24 @@ fun HomeScreen(
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
                         )
                     }
-                    items(data.latest, key = { it.id }) { article ->
-                        ArticleRowCard(
-                            article = article,
-                            lang = lang,
-                            onClick = { onOpenArticle(article.id) },
-                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-                        )
+                    data.latest.forEachIndexed { index, article ->
+                        item(key = "article-${article.id}") {
+                            ArticleRowCard(
+                                article = article,
+                                lang = lang,
+                                onClick = { onOpenArticle(article.id) },
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                            )
+                        }
+                        // 3件ごとに広告バナーを挿入
+                        if (adFree.not() && (index + 1) % 3 == 0 && index < data.latest.lastIndex) {
+                            item(key = "ad-home-$index") {
+                                InfoldAdBanner(
+                                    adFree = adFree,
+                                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                                )
+                            }
+                        }
                     }
 
                     // カテゴリ
@@ -178,7 +191,7 @@ fun HomeScreen(
                         }
                     }
 
-                    // おすすめ記事（ヒーロー以外）
+                    // おすすめ記事
                     val extraFeatured = data.featured.filter { it.id != data.hero?.id }
                     if (extraFeatured.isNotEmpty()) {
                         item(key = "feat-title") {

@@ -28,7 +28,7 @@ import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.categoryDisplayName
 
 // ============================================================
-// カテゴリ一覧（ネイティブ UI）
+// カテゴリ一覧（Liquid Glass UI）
 // ============================================================
 
 @Composable

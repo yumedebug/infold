@@ -34,6 +34,7 @@ import jp.infold.news.R
 import jp.infold.news.data.ApiClient
 import jp.infold.news.data.Article
 import jp.infold.news.data.Category
+import jp.infold.news.ui.ads.InfoldAdBanner
 import jp.infold.news.ui.components.ArticleRowCard
 import jp.infold.news.ui.components.CategoryChip
 import jp.infold.news.ui.components.EmptyView
@@ -44,8 +45,8 @@ import jp.infold.news.util.categoryDisplayName
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 // ============================================================
-// 記事一覧（ネイティブ UI）
-// カテゴリフィルター + ページネーション（もっと見る）
+// 記事一覧（Liquid Glass UI）
+// カテゴリフィルター + ページネーション + 広告バナー
 // ============================================================
 
 @Composable
@@ -53,6 +54,7 @@ fun ArticlesScreen(
     lang: String,
     categories: List<Category>,
     initialCategory: String?,
+    adFree: Boolean,
     onOpenArticle: (Long) -> Unit,
 ) {
     val colors = LocalInfoldColors.current
@@ -66,7 +68,6 @@ fun ArticlesScreen(
     var loadingMore by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var refreshKey by remember { mutableStateOf(0) }
-    // カテゴリを切り替えるたびに新しいリスト状態を使う（先頭に戻すため）
     val listState = remember(selected) { LazyListState() }
 
     suspend fun loadFirst(category: String?) {
@@ -100,14 +101,12 @@ fun ArticlesScreen(
             total = res.total
             page += 1
         } catch (_: Exception) {
-            // もっと見る失敗は無視（スクロールで再試行）
         }
         loadingMore = false
     }
 
     LaunchedEffect(selected, refreshKey) { loadFirst(selected) }
 
-    // 末尾近くまでスクロールしたら次ページを読み込む
     LaunchedEffect(listState, articles.size, loading, loadingMore) {
         if (loading || loadingMore) return@LaunchedEffect
         snapshotFlow {
@@ -161,13 +160,24 @@ fun ArticlesScreen(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
             ) {
-                items(articles, key = { it.id }) { article ->
-                    ArticleRowCard(
-                        article = article,
-                        lang = lang,
-                        onClick = { onOpenArticle(article.id) },
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-                    )
+                articles.forEachIndexed { index, article ->
+                    item(key = "article-${article.id}") {
+                        ArticleRowCard(
+                            article = article,
+                            lang = lang,
+                            onClick = { onOpenArticle(article.id) },
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                        )
+                    }
+                    // 4件ごとに広告バナーを挿入
+                    if (adFree.not() && (index + 1) % 4 == 0 && index < articles.lastIndex) {
+                        item(key = "ad-articles-$index") {
+                            InfoldAdBanner(
+                                adFree = adFree,
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                            )
+                        }
+                    }
                 }
                 item(key = "footer") {
                     Box(

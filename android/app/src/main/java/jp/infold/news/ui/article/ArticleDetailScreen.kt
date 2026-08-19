@@ -45,6 +45,7 @@ import jp.infold.news.data.ArticleDetailResponse
 import jp.infold.news.data.Category
 import jp.infold.news.ui.LocalSnackbarHostState
 import jp.infold.news.ui.UiState
+import jp.infold.news.ui.ads.InfoldAdBanner
 import jp.infold.news.ui.components.ArticleRowCard
 import jp.infold.news.ui.components.CategoryBadge
 import jp.infold.news.ui.components.ErrorView
@@ -61,9 +62,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 // ============================================================
-// 記事詳細（ネイティブ UI）
-// API から取得した記事データを表示する。WebView は使用しない。
-// 本文中の外部リンクのみ外部ブラウザで開く。
+// 記事詳細（Liquid Glass UI）
+// API から取得した記事データをネイティブ UI で表示。
+// 本文後に広告バナーを表示（広告なしモード時は非表示）。
 // ============================================================
 
 @Composable
@@ -72,6 +73,7 @@ fun ArticleDetailScreen(
     lang: String,
     isLoggedIn: Boolean,
     categories: List<Category>,
+    adFree: Boolean,
     onBack: () -> Unit,
     onOpenArticle: (Long) -> Unit,
 ) {
@@ -81,7 +83,6 @@ fun ArticleDetailScreen(
     val scope = rememberCoroutineScope()
 
     var state by remember { mutableStateOf<UiState<ArticleDetailResponse>>(UiState.Loading) }
-    // 記事ごとに新しいリスト状態（先頭から表示）
     val scrollState = remember(articleId) { LazyListState() }
     var claimArmed by remember { mutableStateOf(false) }
     var claimDone by remember { mutableStateOf(false) }
@@ -104,13 +105,11 @@ fun ArticleDetailScreen(
         }
     }
 
-    // 30秒経過でポイント獲得のアームを開始
     LaunchedEffect(articleId) {
         delay(30_000)
         claimArmed = true
     }
 
-    // 末尾までスクロールしたら /complete を呼んで +1 POINT を獲得
     LaunchedEffect(scrollState, claimArmed, claimDone, isLoggedIn, articleId) {
         if (!claimArmed || claimDone || !isLoggedIn) return@LaunchedEffect
         snapshotFlow {
@@ -246,6 +245,16 @@ fun ArticleDetailScreen(
                             blocks = blocks,
                             modifier = Modifier.padding(horizontal = 20.dp),
                         )
+                    }
+
+                    // 広告バナー（本文直後）
+                    if (adFree.not()) {
+                        item(key = "ad-detail") {
+                            InfoldAdBanner(
+                                adFree = adFree,
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                            )
+                        }
                     }
 
                     // 元記事リンク

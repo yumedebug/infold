@@ -44,6 +44,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _language = MutableStateFlow(Prefs.getLanguage(application))
     val language: StateFlow<String> = _language.asStateFlow()
 
+    // 広告非表示状態（ポイント API から取得）
+    private val _adFree = MutableStateFlow(false)
+    val adFree: StateFlow<Boolean> = _adFree.asStateFlow()
+
     // 通知タップなどの 1 回限りのイベント（チャネルで確実に配送）
     private val _navigateToArticle = Channel<Long>(Channel.BUFFERED)
     val navigateToArticle = _navigateToArticle.receiveAsFlow()
@@ -58,6 +62,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         refreshCategories()
+        refreshAdFreeStatus()
     }
 
     // ---- auth ----
@@ -65,6 +70,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun onLogin(response: AuthResponse) {
         if (response.ok && response.user != null) {
             _authState.value = AuthState.LoggedIn(response.user)
+            refreshAdFreeStatus()
         }
     }
 
@@ -78,6 +84,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 ApiClient.clearCookies()
             }
             _authState.value = AuthState.LoggedOut
+            _adFree.value = false
         }
     }
 
@@ -112,6 +119,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** 通知タップや INFOLD リンクから記事詳細を開く */
     fun openArticle(articleId: Long) {
         _navigateToArticle.trySend(articleId)
+    }
+
+    /** 広告非表示状態を更新 */
+    fun refreshAdFreeStatus() {
+        viewModelScope.launch {
+            try {
+                _adFree.value = withContext(Dispatchers.IO) { ApiClient.adFreeStatus() }
+            } catch (_: Exception) {
+                // 失敗しても既存状態を維持
+            }
+        }
     }
 
     /** 端末の FCM トークンをバックエンドに登録する */
