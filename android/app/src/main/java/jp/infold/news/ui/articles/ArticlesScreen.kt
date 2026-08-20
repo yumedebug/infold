@@ -46,6 +46,8 @@ import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.categoryDisplayName
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
 // ============================================================
 // 記事一覧（ソリッド UI）
@@ -62,6 +64,7 @@ fun ArticlesScreen(
 ) {
     val colors = LocalInfoldColors.current
     val context = LocalContext.current
+    val retryScope = rememberCoroutineScope()
 
     var selected by remember { mutableStateOf(initialCategory) }
     var articles by remember { mutableStateOf<List<Article>>(emptyList()) }
@@ -217,7 +220,7 @@ fun ArticlesScreen(
                                 color = colors.primary,
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
-                                    .clickable { loadMore() }
+                                    .clickable { retryScope.launch { loadMore() } }
                                     .padding(horizontal = 16.dp, vertical = 10.dp),
                             )
                             articles.size >= total && total > 0 -> Text(
