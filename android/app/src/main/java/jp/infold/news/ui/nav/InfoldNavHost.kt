@@ -46,7 +46,7 @@ import jp.infold.news.ui.settings.SettingsScreen
 
 // ============================================================
 // 画面遷移の定義（Jetpack Compose Navigation）
-// 下部ナビゲーションはフローティング型 Liquid Glass カプセル
+// 下部ナビゲーションはフローティング型カプセル
 // ============================================================
 
 private val bottomNavItems = listOf(

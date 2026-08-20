@@ -1,7 +1,6 @@
 package jp.infold.news.ui.components
 
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -41,7 +39,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
@@ -70,46 +67,17 @@ import jp.infold.news.util.formatPublishedAt
 import kotlinx.coroutines.launch
 
 // ============================================================
-// INFOLD 共通 UI コンポーネント — Liquid Glass デザイン
-// 半透明カード + ガラスボーダー + ハイライト + ブラー効果
+// INFOLD 共通 UI コンポーネント — ソリッドデザイン
+// Liquid Glass（半透明・ガラス効果）は廃止済み
 // ============================================================
-
-/** Liquid Glass モディファイア — 半透明背景 + ガラスボーダー + ハイライト */
-@Composable
-fun Modifier.glassSurface(
-    cornerRadius: Dp = 16.dp,
-): Modifier {
-    val colors = LocalInfoldColors.current
-    val shape = RoundedCornerShape(cornerRadius)
-    return this
-        .background(
-            brush = Brush.verticalGradient(
-                0f to colors.surface,
-                0.5f to colors.surface.copy(alpha = 0.92f),
-                1f to colors.surface.copy(alpha = 0.85f),
-            ),
-            shape = shape,
-        )
-        .border(1.dp, colors.glassBorder, shape)
-        .drawBehind {
-            // 上端ハイライト（ガラスの光沢）
-            drawLine(
-                color = colors.glassHighlight,
-                start = Offset(size.width * 0.15f, 0f),
-                end = Offset(size.width * 0.85f, 0f),
-                strokeWidth = 1.5.dp.toPx(),
-            )
-        }
-}
 
 /** Web 版のロゴマーク（グラデーションの角丸四角 + 白いドキュメント） */
 @Composable
 fun BrandLogo(size: Dp, modifier: Modifier = Modifier) {
-    val colors = LocalInfoldColors.current
     val density = LocalDensity.current
     val px = with(density) { size.toPx() }
     Canvas(modifier = modifier.size(size)) {
-        val brush = Brush.linearGradient(listOf(colors.primary, colors.primary2))
+        val brush = Brush.linearGradient(listOf(Color(0xFF0D8BFF), Color(0xFF6A4DFF)))
         drawRoundRect(
             brush = brush,
             topLeft = Offset(px * 0.04f, px * 0.04f),
@@ -151,7 +119,7 @@ fun BrandWordmark(modifier: Modifier = Modifier) {
     )
 }
 
-/** Liquid Glass カード（半透明 + ガラス風ボーダー + ハイライト） */
+/** ソリッドカード（不透明背景 + ボーダー） */
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
@@ -159,11 +127,13 @@ fun GlassCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = LocalInfoldColors.current
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(14.dp)
     val clickModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Column(
         modifier = modifier
-            .glassSurface(16.dp)
+            .clip(shape)
+            .background(colors.surface)
+            .border(1.dp, colors.cardBorder, shape)
             .then(clickModifier),
         content = content,
     )
@@ -172,12 +142,10 @@ fun GlassCard(
 /** カテゴリバッジ */
 @Composable
 fun CategoryBadge(slug: String, name: String, modifier: Modifier = Modifier) {
-    val colors = LocalInfoldColors.current
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(7.dp))
             .background(categorySoftColor(slug))
-            .border(0.5.dp, categoryColor(slug).copy(alpha = 0.3f), RoundedCornerShape(7.dp))
             .padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -205,11 +173,8 @@ fun CategoryChip(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))
-            .background(
-                if (selected) Brush.horizontalGradient(listOf(bg, bg))
-                else Brush.verticalGradient(listOf(colors.surface, colors.surface.copy(alpha = 0.8f)))
-            )
-            .border(1.dp, if (selected) color else colors.glassBorder, RoundedCornerShape(50))
+            .background(bg)
+            .border(1.dp, if (selected) color else colors.cardBorder, RoundedCornerShape(50))
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 7.dp),
     ) {
@@ -321,7 +286,6 @@ fun HeroCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = LocalInfoldColors.current
     val shape = RoundedCornerShape(18.dp)
     val resolved = ApiClient.resolveImage(article.thumbnail)
     Box(
@@ -329,7 +293,7 @@ fun HeroCard(
             .fillMaxWidth()
             .height(210.dp)
             .clip(shape)
-            .background(colors.backgroundSoft)
+            .background(Color(0xFF1A1D2B))
             .clickable(onClick = onClick),
     ) {
         if (resolved != null) {
@@ -516,7 +480,7 @@ fun EmptyView(message: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** サブ画面用のトップバー（Liquid Glass ヘッダー） */
+/** サブ画面用のトップバー */
 @Composable
 fun SubTopBar(
     title: String,
@@ -525,29 +489,33 @@ fun SubTopBar(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalInfoldColors.current
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .glassSurface(0.dp)
-            .padding(horizontal = 4.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (onBack != null) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = colors.textPrimary)
+    Column(modifier = modifier.fillMaxWidth().background(colors.headerBackground)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (onBack != null) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = colors.textPrimary)
+                }
             }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                color = colors.textPrimary,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            actions()
         }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = colors.textPrimary,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+        androidx.compose.material3.HorizontalDivider(
+            color = colors.cardBorder,
+            thickness = 1.dp,
         )
-        actions()
     }
-}
 
 /** アカウントアイコン（ホームヘッダー用） */
 @Composable
@@ -559,8 +527,8 @@ fun AccountIconButton(onClick: () -> Unit) {
 }
 
 // ============================================================
-// フローティング型 Liquid Glass ナビゲーションバー
-// 画面下部から少し浮いた横長カプセル型
+// フローティング型ナビゲーションバー
+// 画面下部から少し浮いた横長カプセル型（ソリッド背景）
 // ============================================================
 
 data class FloatingNavItem(
@@ -590,22 +558,8 @@ fun FloatingBottomNavBar(
                 .fillMaxWidth()
                 .height(64.dp)
                 .clip(shape)
-                .background(
-                    brush = Brush.verticalGradient(
-                        0f to colors.surface.copy(alpha = 0.95f),
-                        1f to colors.surface.copy(alpha = 0.82f),
-                    )
-                )
-                .border(1.dp, colors.glassBorder, shape)
-                .drawBehind {
-                    // 上端ハイライト（ガラスの光沢）
-                    drawLine(
-                        color = colors.glassHighlight,
-                        start = Offset(size.width * 0.1f, 0.5.dp.toPx()),
-                        end = Offset(size.width * 0.9f, 0.5.dp.toPx()),
-                        strokeWidth = 1.dp.toPx(),
-                    )
-                }
+                .background(colors.backgroundSoft)
+                .border(1.dp, colors.cardBorder, shape)
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,

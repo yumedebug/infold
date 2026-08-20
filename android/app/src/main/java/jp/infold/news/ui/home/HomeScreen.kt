@@ -39,7 +39,6 @@ import jp.infold.news.ui.components.ArticleRowCard
 import jp.infold.news.ui.components.BrandLogo
 import jp.infold.news.ui.components.BrandWordmark
 import jp.infold.news.ui.components.CategoryChip
-import jp.infold.news.ui.components.glassSurface
 import jp.infold.news.ui.components.ErrorView
 import jp.infold.news.ui.components.GlassCard
 import jp.infold.news.ui.components.HeroCard
@@ -49,7 +48,7 @@ import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.categoryDisplayName
 
 // ============================================================
-// ホーム（Liquid Glass UI）
+// ホーム（ソリッド UI）
 // 注目記事（ヒーロー）+ 最新ニュース + 広告 + カテゴリ
 // ============================================================
 
@@ -95,21 +94,26 @@ fun HomeScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
-        // ヘッダー（Liquid Glass）
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .glassSurface(0.dp)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BrandLogo(size = 30.dp)
-            Spacer(Modifier.width(10.dp))
-            BrandWordmark()
-            Spacer(Modifier.weight(1f))
-            IconButton(onClick = onOpenAccount) {
-                Icon(Icons.Filled.Person, contentDescription = stringResource(R.string.nav_account), tint = colors.textSecondary)
+        // ヘッダー（ソリッド背景）
+        Column(modifier = Modifier.fillMaxWidth().background(colors.headerBackground)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BrandLogo(size = 30.dp)
+                Spacer(Modifier.width(10.dp))
+                BrandWordmark()
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = onOpenAccount) {
+                    Icon(Icons.Filled.Person, contentDescription = stringResource(R.string.nav_account), tint = colors.textSecondary)
+                }
             }
+            androidx.compose.material3.HorizontalDivider(
+                color = colors.cardBorder,
+                thickness = 1.dp,
+            )
         }
 
         when (val s = state) {

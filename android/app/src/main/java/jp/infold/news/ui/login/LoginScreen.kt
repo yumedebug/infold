@@ -37,7 +37,6 @@ import jp.infold.news.data.ApiException
 import jp.infold.news.ui.components.BrandLogo
 import jp.infold.news.ui.components.BrandWordmark
 import jp.infold.news.ui.components.SubTopBar
-import jp.infold.news.ui.components.glassSurface
 import jp.infold.news.ui.theme.LocalInfoldColors
 import kotlinx.coroutines.launch
 import jp.infold.news.R

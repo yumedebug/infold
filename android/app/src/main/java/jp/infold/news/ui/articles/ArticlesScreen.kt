@@ -1,6 +1,7 @@
 package jp.infold.news.ui.articles
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,10 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,7 +48,7 @@ import jp.infold.news.util.categoryDisplayName
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 // ============================================================
-// 記事一覧（Liquid Glass UI）
+// 記事一覧（ソリッド UI）
 // カテゴリフィルター + ページネーション + 広告バナー
 // ============================================================
 
@@ -65,19 +68,26 @@ fun ArticlesScreen(
     var page by remember { mutableStateOf(1) }
     var total by remember { mutableStateOf(0L) }
     var loading by remember { mutableStateOf(true) }
-    var loadingMore by remember { mutableStateOf(false) }
+    var loadMoreBusy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var loadMoreError by remember { mutableStateOf(false) }
     var refreshKey by remember { mutableStateOf(0) }
-    val listState = remember(selected) { LazyListState() }
 
+    // LazyListState は selected が変わったときだけ再作成
+    val listState = remember(selected) {
+        androidx.compose.foundation.lazy.LazyListState()
+    }
+
+    // --- 最初のページを読み込む ---
     suspend fun loadFirst(category: String?) {
         articles = emptyList()
         page = 1
         total = 0
         loading = true
         error = null
+        loadMoreError = false
         try {
-            val res = ApiClient.listArticles(page = 1, limit = 12, category = category)
+            val res = ApiClient.listArticles(page = 1, limit = 20, category = category)
             articles = res.articles
             total = res.total
             page = 2
@@ -92,29 +102,39 @@ fun ArticlesScreen(
         loading = false
     }
 
+    // --- 追加読み込み ---
     suspend fun loadMore() {
-        if (loading || loadingMore || articles.size >= total) return
-        loadingMore = true
+        if (loading || loadMoreBusy || articles.size >= total || error != null) return
+        loadMoreBusy = true
+        loadMoreError = false
         try {
-            val res = ApiClient.listArticles(page = page, limit = 12, category = selected)
-            articles = articles + res.articles
-            total = res.total
-            page += 1
+            val res = ApiClient.listArticles(page = page, limit = 20, category = selected)
+            if (res.articles.isEmpty()) {
+                // 空ページ → 全件読み込み済み
+                total = articles.size.toLong()
+            } else {
+                articles = articles + res.articles
+                total = res.total
+                page += 1
+            }
         } catch (_: Exception) {
+            loadMoreError = true
         }
-        loadingMore = false
+        loadMoreBusy = false
     }
 
     LaunchedEffect(selected, refreshKey) { loadFirst(selected) }
 
-    LaunchedEffect(listState, articles.size, loading, loadingMore) {
-        if (loading || loadingMore) return@LaunchedEffect
+    // --- スクロール位置の監視（articles.size に依存しない） ---
+    LaunchedEffect(listState) {
         snapshotFlow {
             val info = listState.layoutInfo
             val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisible >= info.totalItemsCount - 3
+            lastVisible >= info.totalItemsCount - 5
         }.distinctUntilChanged().collect { nearEnd ->
-            if (nearEnd) loadMore()
+            if (nearEnd && !loading && !loadMoreBusy) {
+                loadMore()
+            }
         }
     }
 
@@ -179,19 +199,30 @@ fun ArticlesScreen(
                         }
                     }
                 }
+
+                // フッター（読み込み中 / 最後まで表示 / エラー）
                 item(key = "footer") {
                     Box(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         when {
-                            loadingMore -> CircularProgressIndicator(
+                            loadMoreBusy -> CircularProgressIndicator(
                                 color = colors.primary,
                                 modifier = Modifier.size(24.dp),
                             )
+                            loadMoreError -> Text(
+                                text = context.getString(R.string.common_failed) + " (タップで再試行)",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = colors.primary,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { loadMore() }
+                                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                            )
                             articles.size >= total && total > 0 -> Text(
                                 text = context.getString(R.string.common_end_of_list),
-                                style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = colors.textFaint,
                                 fontWeight = FontWeight.Normal,
                             )

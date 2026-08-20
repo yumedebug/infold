@@ -3,9 +3,8 @@ package jp.infold.news.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // ============================================================
-// INFOLD カラーパレット — Liquid Glass デザイン
-// 半透明サーフェス + 背景ぼかし + ガラスの質感を表現する色
-// Web 版の Liquid Glass CSS とは独立した Android ネイティブ実装
+// INFOLD カラーパレット — ソリッドデザイン
+// Liquid Glass（半透明）を廃止し、不透明な読みやすい配色に変更
 // ============================================================
 
 // ---- ネオンアクセント ----
@@ -13,49 +12,39 @@ val NeonCyan = Color(0xFF00E0FF)
 val NeonViolet = Color(0xFF8B5CFF)
 val NeonPink = Color(0xFFFF3D9A)
 
-// ---- ダークテーマ（Liquid Glass） ----
-// 背景はほぼ黒、サーフェスは薄暗い半透明（ガラス板）
-val DarkBg = Color(0xFF03060D)
-val DarkBgSoft = Color(0xFF080E1A)
-val DarkGlass = Color(0x1AFFFFFF)          // 10% 白 → 暗いガラス
-val DarkGlassSolid = Color(0xFF0F1525)     // 実際の描画用（.alpha で透明度を制御）
-val DarkGlassBorder = Color(0x33FFFFFF)    // 20% 白 → ガラスの境界線
-val DarkGlassHighlight = Color(0x14FFFFFF) // 8% 白 → ガラスのハイライト
-val DarkCard = Color(0x14FFFFFF)           // カード背景
-val DarkCardHover = Color(0x1EFFFFFF)
+// ---- ダークテーマ（ソリッド） ----
+val DarkBg = Color(0xFF0F1118)
+val DarkBgSoft = Color(0xFF1A1D2B)
+val DarkCard = Color(0xFF1E2235)
+val DarkCardHover = Color(0xFF262A3F)
 val DarkText = Color(0xFFE8ECFF)
 val DarkMuted = Color(0xFF8B95B8)
 val DarkFaint = Color(0xFF5A6585)
-val DarkBorder = Color(0x22FFFFFF)
+val DarkBorder = Color(0xFF2A2E42)
 val DarkPrimary = Color(0xFF00C8FF)
 val DarkPrimary2 = Color(0xFF8B5CFF)
 val DarkAccent = Color(0xFFFF3D9A)
 val DarkOk = Color(0xFF3DFFB8)
 val DarkWarn = Color(0xFFFFB020)
-val DarkHeader = Color(0x0DFFFFFF) // ヘッダーはほぼ透明なガラス
-val DarkCardBorder = Color(0x1AFFFFFF)
+val DarkHeader = Color(0xFF161927)
+val DarkCardBorder = Color(0xFF2A2E42)
 
-// ---- ライトテーマ（Liquid Glass） ----
-// 背景は淡いブルーグレー、サーフェスは明るい半透明（ガラス板）
-val LightBg = Color(0xFFF0F4FA)
-val LightBgSoft = Color(0xFFE4EBF7)
-val LightGlass = Color(0x33FFFFFF)          // 20% 白 → 明るいガラス
-val LightGlassSolid = Color(0xFFF8FAFF)    // 実際の描画用
-val LightGlassBorder = Color(0x4DFFFFFF)   // 30% 白 → ガラスの境界線
-val LightGlassHighlight = Color(0x66FFFFFF) // 40% 白 → ガラスのハイライト
-val LightCard = Color(0x40FFFFFF)           // カード背景
-val LightCardHover = Color(0x59FFFFFF)
-val LightText = Color(0xFF0F1729)
+// ---- ライトテーマ（ソリッド） ----
+val LightBg = Color(0xFFF3F4F8)
+val LightBgSoft = Color(0xFFE8EAF0)
+val LightCard = Color(0xFFFFFFFF)
+val LightCardHover = Color(0xFFF0F1F5)
+val LightText = Color(0xFF1A1D2B)
 val LightMuted = Color(0xFF566488)
 val LightFaint = Color(0xFF8B97B8)
-val LightBorder = Color(0x33FFFFFF)
+val LightBorder = Color(0xFFDDE0E8)
 val LightPrimary = Color(0xFF0D8BFF)
 val LightPrimary2 = Color(0xFF6A4DFF)
 val LightAccent = Color(0xFFFF3D9A)
 val LightOk = Color(0xFF0A9E6D)
 val LightWarn = Color(0xFFD97706)
-val LightHeader = Color(0x4DFFFFFF) // ヘッダーは半透明ガラス
-val LightCardBorder = Color(0x33FFFFFF)
+val LightHeader = Color(0xFFFFFFFF)
+val LightCardBorder = Color(0xFFDDE0E8)
 
 // ---- カテゴリカラー（Web 版と同一） ----
 val CategoryColors = mapOf(
@@ -76,7 +65,7 @@ fun categorySoftColor(slug: String): Color = categoryColor(slug).copy(alpha = 0.
 data class InfoldColors(
     val background: Color,
     val backgroundSoft: Color,
-    val surface: Color,          // ガラスカード背景
+    val surface: Color,
     val surfaceHover: Color,
     val textPrimary: Color,
     val textSecondary: Color,
@@ -89,9 +78,6 @@ data class InfoldColors(
     val warn: Color,
     val cardBorder: Color,
     val headerBackground: Color,
-    // Liquid Glass 専用
-    val glassHighlight: Color,
-    val glassBorder: Color,
     val isDark: Boolean,
 )
 
@@ -111,8 +97,6 @@ val LightInfoldColors = InfoldColors(
     warn = LightWarn,
     cardBorder = LightCardBorder,
     headerBackground = LightHeader,
-    glassHighlight = LightGlassHighlight,
-    glassBorder = LightGlassBorder,
     isDark = false,
 )
 
@@ -132,7 +116,5 @@ val DarkInfoldColors = InfoldColors(
     warn = DarkWarn,
     cardBorder = DarkCardBorder,
     headerBackground = DarkHeader,
-    glassHighlight = DarkGlassHighlight,
-    glassBorder = DarkGlassBorder,
     isDark = true,
 )
