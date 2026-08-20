@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- グラデーション背景の角丸四角 -->
+    <group>
+        <path
+            android:pathData="M22,22 L86,22 Q94,22 94,30 L94,78 Q94,86 86,86 L22,86 Q14,86 14,78 L14,30 Q14,22 22,22 Z"
+            android:fillColor="#0D8BFF" />
+    </group>
+
+    <!-- ドキュメントアイコン（白） -->
+    <!-- 本体 -->
+    <path
+        android:pathData="M36,38 L50,38 L50,32 Q50,28 54,28 L72,28 L72,76 L36,76 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- ドキュメント折り目 -->
+    <path
+        android:pathData="M50,38 L50,32 Q50,28 54,28 L72,28 L72,38 Z"
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.55" />
+
+    <!-- ドット -->
+    <path
+        android:pathData="M43,46 m-4,0 a4,4 0,1 1,8 0 a4,4 0,1 1,-8 0"
+        android:fillColor="#FFFFFF" />
+
+    <!-- 記事ライン1 -->
+    <path
+        android:pathData="M40,56 L68,56"
+        android:strokeColor="#CCCCCC"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- 記事ライン2 -->
+    <path
+        android:pathData="M40,63 L62,63"
+        android:strokeColor="#CCCCCC"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- 記事ライン3 -->
+    <path
+        android:pathData="M40,70 L56,70"
+        android:strokeColor="#CCCCCC"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+</vector>
