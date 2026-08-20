@@ -516,6 +516,7 @@ fun SubTopBar(
             thickness = 1.dp,
         )
     }
+}
 
 /** アカウントアイコン（ホームヘッダー用） */
 @Composable
