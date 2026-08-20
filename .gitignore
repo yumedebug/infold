@@ -17,3 +17,5 @@ android/*.jks
 android/keystore.properties
 *.keystore
 *.jks
+# Firebase設定（認証情報をリポジトリに公開しない）
+android/app/google-services.json
