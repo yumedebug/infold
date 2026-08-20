@@ -557,10 +557,10 @@ fun FloatingBottomNavBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
+                .height(56.dp)
                 .clip(shape)
-                .background(colors.backgroundSoft)
-                .border(1.dp, colors.cardBorder, shape)
+                .background(colors.backgroundSoft.copy(alpha = 0.85f))
+                .border(1.dp, colors.cardBorder.copy(alpha = 0.4f), shape)
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
@@ -602,31 +602,19 @@ private fun FloatingNavItemButton(
 
     Box(
         modifier = Modifier
-            .size(width = 56.dp, height = 48.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .size(width = 48.dp, height = 48.dp)
+            .clip(CircleShape)
             .background(
-                color = colors.primary.copy(alpha = 0.18f * indicatorAlpha),
+                color = colors.primary.copy(alpha = 0.15f * indicatorAlpha),
             )
-            .clickable(onClick = onClick)
-            .padding(vertical = 6.dp),
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = null,
-                tint = if (selected) colors.primary else colors.textFaint,
-                modifier = Modifier.size((22 * iconScale).dp),
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                color = if (selected) colors.primary else colors.textFaint,
-                maxLines = 1,
-            )
-        }
+        Icon(
+            imageVector = item.icon,
+            contentDescription = label,
+            tint = if (selected) colors.primary else colors.textFaint.copy(alpha = 0.7f),
+            modifier = Modifier.size((22 * iconScale).dp),
+        )
     }
 }

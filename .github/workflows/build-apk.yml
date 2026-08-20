@@ -5,7 +5,7 @@
 # GitHub 上（ubuntu-latest）で以下をビルドして Artifact として保存する。
 #   - Debug APK
 #   - Release APK
-#   - Release AAB（Google Play 提出用）
+#   - Release AAB（Galaxy Store 提出用）
 #
 # トリガー:
 #   - main ブランチへの push（android/ または本ファイルの変更時）
@@ -17,7 +17,7 @@
 #     ANDROID_KEYSTORE_PASSWORD  keystore / 鍵のパスワード
 #     ANDROID_KEY_ALIAS          鍵のエイリアス（例: infold）
 #   Secrets が無い場合は debug 鍵で署名した APK/AAB を生成する
-#   （実機テスト用。Google Play に提出する場合は署名鍵が必要）。
+#   （実機テスト用。Galaxy Store に提出する場合は署名鍵が必要）。
 #   署名鍵はリポジトリにコミットせず、必ず Secrets で管理する。
 #
 #   keystore の生成は「Generate release keystore」ワークフロー

@@ -179,8 +179,7 @@ Cloudflare Worker / D1（既存のバックエンドをそのまま使用）
 4. `./gradlew :app:assembleDebug :app:assembleRelease :app:bundleRelease` でビルド
 5. 以下を生成（署名鍵が無ければ debug 鍵で署名）
    - **Debug APK**（`app-debug.apk`）
-   - **Release APK**（`app-release.apk`）
-   - **Release AAB**（`app-release.aab`、Google Play 提出用）
+   - **Release APK**（`app-release.apk`）    - **Release AAB**（`app-release.aab`、Galaxy Store 提出用）
 6. 成果物を **Artifact** として保存（30日間保持）し、**GitHub Releases** にも公開
 
 ビルドに失敗した場合は、Actions のログ（`--stacktrace` 出力）と `gradle-build-log` Artifact で原因を確認できます。
@@ -215,11 +214,11 @@ Cloudflare Worker / D1（既存のバックエンドをそのまま使用）
 
 > 旧バージョン（v1.x の TWA 版）をインストール済みの場合は、署名が異なるため一度アンインストールしてからインストールしてください。
 
-## Release 署名の設定（Google Play 提出時に必須）
+## Release 署名の設定（Galaxy Store 提出時に必須）
 
 ### 現状の動作
 
-- **署名鍵（GitHub Secrets）が未設定**の場合: debug 鍵で署名した APK/AAB を生成します。実機テスト・インストールは可能ですが、**Google Play には提出できません**（また、バージョン更新時の署名継続もできません）。
+- **署名鍵（GitHub Secrets）が未設定**の場合: debug 鍵で署名した APK/AAB を生成します。実機テスト・インストールは可能ですが、**Galaxy Store には提出できません**（また、バージョン更新時の署名継続もできません）。
 - **署名鍵を設定**した場合: 正規の Release 署名付き APK / AAB を生成します。
 
 ### 署名鍵を準備する（Android Studio 不要）
