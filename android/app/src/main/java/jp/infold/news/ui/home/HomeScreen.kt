@@ -40,6 +40,7 @@ import jp.infold.news.ui.components.BrandLogo
 import jp.infold.news.ui.components.BrandWordmark
 import jp.infold.news.ui.components.CategoryChip
 import jp.infold.news.ui.components.ErrorView
+import jp.infold.news.ui.components.FeaturedBannerCard
 import jp.infold.news.ui.components.GlassCard
 import jp.infold.news.ui.components.HeroCard
 import jp.infold.news.ui.components.LoadingView
@@ -195,7 +196,7 @@ fun HomeScreen(
                         }
                     }
 
-                    // おすすめ記事
+                    // おすすめ記事（水平カルーセル）
                     val extraFeatured = data.featured.filter { it.id != data.hero?.id }
                     if (extraFeatured.isNotEmpty()) {
                         item(key = "feat-title") {
@@ -204,13 +205,19 @@ fun HomeScreen(
                                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
                             )
                         }
-                        items(extraFeatured, key = { it.id }) { article ->
-                            ArticleRowCard(
-                                article = article,
-                                lang = lang,
-                                onClick = { onOpenArticle(article.id) },
-                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-                            )
+                        item(key = "feat-carousel") {
+                            LazyRow(
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                items(extraFeatured, key = { it.id }) { article ->
+                                    FeaturedBannerCard(
+                                        article = article,
+                                        lang = lang,
+                                        onClick = { onOpenArticle(article.id) },
+                                    )
+                                }
+                            }
                         }
                     }
 

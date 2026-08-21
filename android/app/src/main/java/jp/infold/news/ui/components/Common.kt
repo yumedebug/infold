@@ -290,6 +290,113 @@ fun ArticleThumb(raw: String?, category: String = "other", modifier: Modifier = 
     }
 }
 
+/** 記事ヘッダー画像なし・読み込み失敗時の INFOLD フォールバック */
+@Composable
+fun InfoldFallbackHeader(modifier: Modifier = Modifier) {
+    val colors = LocalInfoldColors.current
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(230.dp)
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        colors.primary.copy(alpha = 0.18f),
+                        colors.primary2.copy(alpha = 0.10f),
+                        colors.background,
+                    )
+                )
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            BrandLogo(size = 48.dp)
+            Spacer(Modifier.height(8.dp))
+            BrandWordmark()
+        }
+    }
+}
+
+/** 水平おすすめ記事バナーカード（画像 + グラデーションオーバーレイ + タイトル） */
+@Composable
+fun FeaturedBannerCard(
+    article: Article,
+    lang: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(14.dp)
+    val resolved = ApiClient.resolveImage(article.thumbnail)
+    Box(
+        modifier = modifier
+            .width(260.dp)
+            .height(160.dp)
+            .clip(shape)
+            .background(Color(0xFF1A1D2B))
+            .clickable(onClick = onClick),
+    ) {
+        if (resolved != null) {
+            AsyncImage(
+                model = resolved,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            val c = categoryColor(article.category)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.linearGradient(
+                            listOf(c.copy(alpha = 0.6f), Color(0xFF1A1D2B))
+                        )
+                    ),
+            )
+        }
+        // 下部グラデーションオーバーレイ
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        0.4f to Color.Black.copy(alpha = 0.15f),
+                        1f to Color.Black.copy(alpha = 0.85f),
+                    )
+                ),
+        )
+        // カテゴリバッジ + タイトル
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            CategoryBadge(
+                article.category,
+                categoryDisplayName(article.category, emptyList(), lang),
+            )
+            Text(
+                text = article.title,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (article.sourceName != null && article.sourceName.isNotBlank()) {
+                Text(
+                    text = article.sourceName,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.6f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
 /** ホームの注目記事（ヒーロー）カード */
 @Composable
 fun HeroCard(

@@ -42,7 +42,9 @@ import jp.infold.news.ui.components.ArticleRowCard
 import jp.infold.news.ui.components.CategoryChip
 import jp.infold.news.ui.components.EmptyView
 import jp.infold.news.ui.components.ErrorView
+import jp.infold.news.ui.components.FeaturedBannerCard
 import jp.infold.news.ui.components.LoadingView
+import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.categoryDisplayName
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -68,6 +70,7 @@ fun ArticlesScreen(
 
     var selected by remember { mutableStateOf(initialCategory) }
     var articles by remember { mutableStateOf<List<Article>>(emptyList()) }
+    var featured by remember { mutableStateOf<List<Article>>(emptyList()) }
     var page by remember { mutableStateOf(1) }
     var total by remember { mutableStateOf(0L) }
     var loading by remember { mutableStateOf(true) }
@@ -84,6 +87,7 @@ fun ArticlesScreen(
     // --- 最初のページを読み込む ---
     suspend fun loadFirst(category: String?) {
         articles = emptyList()
+        featured = emptyList()
         page = 1
         total = 0
         loading = true
@@ -94,6 +98,12 @@ fun ArticlesScreen(
             articles = res.articles
             total = res.total
             page = 2
+            // おすすめ記事を取得（フィルターなしの場合のみ）
+            if (category == null) {
+                try {
+                    featured = ApiClient.listArticles(page = 1, limit = 5, featured = true).articles
+                } catch (_: Exception) {}
+            }
         } catch (e: Exception) {
             error = if (ApiClient.isOfflineException(e)) {
                 context.getString(R.string.common_offline)
@@ -183,6 +193,30 @@ fun ArticlesScreen(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
             ) {
+                // おすすめ記事（水平カルーセル）
+                if (featured.isNotEmpty()) {
+                    item(key = "feat-title") {
+                        SectionTitle(
+                            title = context.getString(R.string.home_featured),
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                        )
+                    }
+                    item(key = "feat-carousel") {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            items(featured, key = { it.id }) { article ->
+                                FeaturedBannerCard(
+                                    article = article,
+                                    lang = lang,
+                                    onClick = { onOpenArticle(article.id) },
+                                )
+                            }
+                        }
+                    }
+                }
+
                 articles.forEachIndexed { index, article ->
                     item(key = "article-${article.id}") {
                         ArticleRowCard(

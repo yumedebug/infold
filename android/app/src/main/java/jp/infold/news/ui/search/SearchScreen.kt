@@ -1,6 +1,7 @@
 package jp.infold.news.ui.search
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,8 +37,10 @@ import jp.infold.news.data.Article
 import jp.infold.news.ui.components.ArticleRowCard
 import jp.infold.news.ui.components.EmptyView
 import jp.infold.news.ui.components.ErrorView
+import jp.infold.news.ui.components.FeaturedBannerCard
 import jp.infold.news.ui.ads.InfoldAdBanner
 import jp.infold.news.ui.components.LoadingView
+import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.theme.LocalInfoldColors
 
 // ============================================================
@@ -56,9 +59,17 @@ fun SearchScreen(
     var query by remember { mutableStateOf("") }
     var searchKey by remember { mutableStateOf(0) }
     var results by remember { mutableStateOf<List<Article>>(emptyList()) }
+    var featured by remember { mutableStateOf<List<Article>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var searched by remember { mutableStateOf(false) }
+
+    // おすすめ記事を取得（初期表示用）
+    LaunchedEffect(Unit) {
+        try {
+            featured = ApiClient.listArticles(page = 1, limit = 5, featured = true).articles
+        } catch (_: Exception) {}
+    }
 
     LaunchedEffect(searchKey) {
         val q = query.trim()
@@ -147,17 +158,41 @@ fun SearchScreen(
                 item(key = "bottom") { Spacer(Modifier.height(20.dp)) }
             }
 
-            else -> Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 40.dp),
+            else -> androidx.compose.foundation.lazy.LazyColumn(
+                modifier = Modifier.fillMaxSize(),
             ) {
-                Spacer(Modifier.height(60.dp))
-                Text(
-                    text = context.getString(R.string.search_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.textFaint,
-                )
+                // 検索ヒント
+                item(key = "hint") {
+                    Text(
+                        text = context.getString(R.string.search_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.textFaint,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                    )
+                }
+                // おすすめ記事（水平カルーセル）
+                if (featured.isNotEmpty()) {
+                    item(key = "feat-title") {
+                        SectionTitle(
+                            title = context.getString(R.string.home_featured),
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                        )
+                    }
+                    item(key = "feat-carousel") {
+                        androidx.compose.foundation.lazy.LazyRow(
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            items(featured, key = { it.id }) { article ->
+                                FeaturedBannerCard(
+                                    article = article,
+                                    lang = lang,
+                                    onClick = { onOpenArticle(article.id) },
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

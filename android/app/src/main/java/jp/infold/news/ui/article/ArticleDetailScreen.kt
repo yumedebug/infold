@@ -50,6 +50,7 @@ import jp.infold.news.ui.components.ArticleRowCard
 import jp.infold.news.ui.components.CategoryBadge
 import jp.infold.news.ui.components.ErrorView
 import jp.infold.news.ui.components.GlassCard
+import jp.infold.news.ui.components.InfoldFallbackHeader
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.components.SubTopBar
@@ -174,17 +175,24 @@ fun ArticleDetailScreen(
                     state = scrollState,
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    // ヒーロー画像
+                    // ヒーロー画像（画像なし・読み込み失敗時は INFOLD フォールバック）
                     item(key = "hero") {
-                        if (resolvedThumb != null) {
+                        var heroImageFailed by remember { mutableStateOf(false) }
+                        if (resolvedThumb != null && !heroImageFailed) {
                             AsyncImage(
-                                model = resolvedThumb,
+                                model = coil.request.ImageRequest.Builder(LocalContext.current)
+                                    .data(resolvedThumb)
+                                    .crossfade(true)
+                                    .listener(onError = { _, _ -> heroImageFailed = true })
+                                    .build(),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(230.dp),
                                 contentScale = ContentScale.Crop,
                             )
+                        } else {
+                            InfoldFallbackHeader()
                         }
                     }
 

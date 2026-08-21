@@ -86,8 +86,7 @@ fun InfoldNavHost(viewModel: AppViewModel) {
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val showBottomBar = currentRoute in bottomNavItems.map { it.route } ||
-        currentRoute?.startsWith("articles") == true
+    val showBottomBar = true
 
     Scaffold(
         containerColor = Color.Transparent,
