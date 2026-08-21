@@ -1,5 +1,7 @@
 package jp.infold.news.ui.nav
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -18,8 +20,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ExperimentalGraphicsApi
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -36,6 +39,7 @@ import jp.infold.news.ui.account.AccountScreen
 import jp.infold.news.ui.article.ArticleDetailScreen
 import jp.infold.news.ui.articles.ArticlesScreen
 import jp.infold.news.ui.categories.CategoriesScreen
+import jp.infold.news.ui.components.BackdropContent
 import jp.infold.news.ui.components.FloatingBottomNavBar
 import jp.infold.news.ui.components.FloatingNavItem
 import jp.infold.news.ui.home.HomeScreen
@@ -57,6 +61,7 @@ private val bottomNavItems = listOf(
     FloatingNavItem("account", R.string.nav_account, Icons.Filled.Person),
 )
 
+@OptIn(ExperimentalGraphicsApi::class)
 @Composable
 fun InfoldNavHost(viewModel: AppViewModel) {
     val navController = rememberNavController()
@@ -67,6 +72,10 @@ fun InfoldNavHost(viewModel: AppViewModel) {
     val adFree by viewModel.adFree.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    // 背景コンテンツを記録するレイヤー。バーはこのレイヤーを RenderEffect
+    // 付きで切り抜いて描画するため、同じウィンドウ内でも本当の背景ブラーになる。
+    val contentLayer = rememberGraphicsLayer()
+    val blurLayer = rememberGraphicsLayer()
 
     // 通知タップ / INFOLD リンク → ネイティブの記事詳細へ
     LaunchedEffect(Unit) {
@@ -83,22 +92,25 @@ fun InfoldNavHost(viewModel: AppViewModel) {
     Scaffold(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        bottomBar = {
-            if (showBottomBar) {
-                FloatingBottomNavBar(
-                    items = bottomNavItems,
-                    currentRoute = currentRoute,
-                    onSelect = { route -> selectTab(navController, route) },
-                )
-            }
-        },
     ) { padding ->
         CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
-            NavHost(
-                navController = navController,
-                startDestination = "home",
-                modifier = Modifier.padding(padding),
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
             ) {
+                // ナビゲーションバーを Scaffold の bottomBar ではなくオーバーレイにする。
+                // これでスクロール中の記事画像や文字がバーの背後まで存在する。
+                BackdropContent(
+                    contentLayer = contentLayer,
+                    blurLayer = blurLayer,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = "home",
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
                 composable("home") {
                     HomeScreen(
                         lang = language,
@@ -201,6 +213,18 @@ fun InfoldNavHost(viewModel: AppViewModel) {
                         adFree = adFree,
                         onBack = { navController.popBackStack() },
                         onOpenArticle = { id -> navController.navigate("article/$id") },
+                    )
+                        }
+                    }
+                }
+
+                if (showBottomBar) {
+                    FloatingBottomNavBar(
+                        items = bottomNavItems,
+                        currentRoute = currentRoute,
+                        onSelect = { route -> selectTab(navController, route) },
+                        blurLayer = blurLayer,
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }

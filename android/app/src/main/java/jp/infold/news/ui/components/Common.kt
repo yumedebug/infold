@@ -1,5 +1,6 @@
 package jp.infold.news.ui.components
 
+import android.os.Build
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -32,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,13 +42,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.ExperimentalGraphicsApi
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -54,6 +66,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import jp.infold.news.data.ApiClient
@@ -67,8 +80,7 @@ import jp.infold.news.util.formatPublishedAt
 import kotlinx.coroutines.launch
 
 // ============================================================
-// INFOLD 共通 UI コンポーネント — ソリッドデザイン
-// Liquid Glass（半透明・ガラス効果）は廃止済み
+// INFOLD 共通 UI コンポーネント — Liquid Glass UI
 // ============================================================
 
 /** Web 版のロゴマーク（グラデーションの角丸四角 + 白いドキュメント） */
@@ -529,7 +541,11 @@ fun AccountIconButton(onClick: () -> Unit) {
 
 // ============================================================
 // フローティング型ナビゲーションバー
-// 画面下部から少し浮いた横長カプセル型（ソリッド背景）
+// 画面下部から少し浮いた Liquid Glass カプセル型。
+// 背景コンテンツを別の GraphicsLayer に記録し、Android 12 以降では
+// RenderEffect のブラーをそのレイヤーに適用してからガラス内へ描画する。
+// これにより単なる alpha の低い色ではなく、実際の背後コンテンツが
+// 見える（かつ軽くぼやける）構成になる。
 // ============================================================
 
 data class FloatingNavItem(
@@ -538,41 +554,250 @@ data class FloatingNavItem(
     val icon: ImageVector,
 )
 
+/**
+ * Compose のコンテンツを通常用とブラー用の2つのネイティブ GraphicsLayer に記録する。
+ * Android 12 未満では RenderEffect が使えないため、透明ガラスのみへフォールバックする。
+ */
+@OptIn(ExperimentalGraphicsApi::class)
+@Composable
+fun BackdropContent(
+    contentLayer: GraphicsLayer,
+    blurLayer: GraphicsLayer,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+
+    SideEffect {
+        @Suppress("NewApi")
+        blurLayer.renderEffect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            BlurEffect(
+                radiusX = 20f,
+                radiusY = 20f,
+                edgeTreatment = TileMode.Clamp,
+            )
+        } else {
+            null
+        }
+    }
+
+    Box(
+        modifier = modifier.drawWithContent {
+            // 2回目の記録は同じ背後コンテンツをブラー用に保持するためのもの。
+            val layerSize = size.toIntSize()
+            contentLayer.record(
+                density = this,
+                layoutDirection = layoutDirection,
+                size = layerSize,
+            ) { this@drawWithContent.drawContent() }
+            blurLayer.record(
+                density = this,
+                layoutDirection = layoutDirection,
+                size = layerSize,
+            ) { this@drawWithContent.drawContent() }
+            drawLayer(contentLayer)
+        },
+    ) {
+        content()
+    }
+}
+
+@OptIn(ExperimentalGraphicsApi::class)
 @Composable
 fun FloatingBottomNavBar(
     items: List<FloatingNavItem>,
     currentRoute: String?,
     onSelect: (String) -> Unit,
+    blurLayer: GraphicsLayer,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalInfoldColors.current
-    val shape = RoundedCornerShape(28.dp)
+    val density = LocalDensity.current
+    val selectedIndex = items.indexOfFirst { item ->
+        if (item.route == "articles") currentRoute?.startsWith("articles") == true
+        else currentRoute == item.route
+    }
+    val indicatorAlpha by animateFloatAsState(
+        targetValue = if (selectedIndex >= 0) 1f else 0f,
+        animationSpec = tween(durationMillis = 250, easing = LinearEasing),
+        label = "glass-indicator",
+    )
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(start = 24.dp, end = 24.dp, bottom = 12.dp),
-        contentAlignment = Alignment.BottomCenter,
-    ) {
+    // バー自身は不透明な背景を持たず、呼び出し側の背後レイヤーを受け取る。
+    FloatingBottomNavBarSurface(
+        items = items,
+        onSelect = onSelect,
+        colors = colors,
+        density = density,
+        selectedIndex = selectedIndex,
+        indicatorAlpha = indicatorAlpha,
+        blurLayer = blurLayer,
+        modifier = modifier,
+    )
+}
+
+@OptIn(ExperimentalGraphicsApi::class)
+@Composable
+private fun FloatingBottomNavBarSurface(
+    items: List<FloatingNavItem>,
+    onSelect: (String) -> Unit,
+    colors: jp.infold.news.ui.theme.InfoldColors,
+    density: androidx.compose.ui.unit.Density,
+    selectedIndex: Int,
+    indicatorAlpha: Float,
+    blurLayer: GraphicsLayer,
+    modifier: Modifier,
+) {
+    val barHeight = with(density) { 56.dp.toPx() }
+    val horizontalPadding = with(density) { 24.dp.toPx() }
+    val bottomPadding = with(density) { 12.dp.toPx() }
+    val itemSize = with(density) { 48.dp.toPx() }
+    val radius = with(density) { 28.dp.toPx() }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Canvas(modifier = Modifier.matchParentSize()) {
+            val barWidth = size.width - horizontalPadding * 2f
+            val barTop = size.height - bottomPadding - barHeight
+            val barRect = Rect(
+                left = horizontalPadding,
+                top = barTop,
+                right = horizontalPadding + barWidth,
+                bottom = barTop + barHeight,
+            )
+            val barPath = Path().apply {
+                addRoundRect(RoundRect(barRect, CornerRadius(radius, radius)))
+            }
+
+            // バーの下にだけ影を置き、画面から浮いている質感を作る。
+            drawRoundRect(
+                color = Color.Black.copy(alpha = if (colors.isDark) 0.24f else 0.12f),
+                topLeft = Offset(barRect.left, barRect.top + with(density) { 4.dp.toPx() }),
+                size = Size(barRect.width, barRect.height),
+                cornerRadius = CornerRadius(radius, radius),
+            )
+
+            clipPath(barPath) {
+                // 背景コンテンツそのものを RenderEffect 付きで描画するため、
+                // 画像・文字・背景がガラス越しに実際に見え、軽くぼやける。
+                drawLayer(blurLayer)
+                drawRoundRect(
+                    brush = if (colors.isDark) {
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.13f),
+                                Color(0xFF17243D).copy(alpha = 0.16f),
+                                Color(0xFF0C1220).copy(alpha = 0.10f),
+                            )
+                        )
+                    } else {
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.34f),
+                                Color.White.copy(alpha = 0.22f),
+                                Color(0xFFE8F0FF).copy(alpha = 0.16f),
+                            )
+                        )
+                    },
+                    topLeft = barRect.topLeft,
+                    size = barRect.size,
+                    cornerRadius = CornerRadius(radius, radius),
+                )
+                // 控えめな斜めの反射。
+                drawRoundRect(
+                    brush = Brush.linearGradient(
+                        listOf(
+                            Color.White.copy(alpha = 0.12f),
+                            Color.Transparent,
+                            Color.White.copy(alpha = 0.04f),
+                        ),
+                        start = Offset(barRect.left, barRect.top),
+                        end = Offset(barRect.right, barRect.bottom),
+                    ),
+                    topLeft = barRect.topLeft,
+                    size = barRect.size,
+                    cornerRadius = CornerRadius(radius, radius),
+                )
+            }
+
+            // 薄い明色の外周と、上側の柔らかなハイライト。
+            drawRoundRect(
+                color = Color.White.copy(alpha = if (colors.isDark) 0.30f else 0.58f),
+                topLeft = barRect.topLeft,
+                size = barRect.size,
+                cornerRadius = CornerRadius(radius, radius),
+                style = Stroke(width = with(density) { 1.dp.toPx() }),
+            )
+            drawLine(
+                color = Color.White.copy(alpha = if (colors.isDark) 0.22f else 0.42f),
+                start = Offset(barRect.left + radius, barRect.top + with(density) { 1.dp.toPx() }),
+                end = Offset(barRect.right - radius, barRect.top + with(density) { 1.dp.toPx() }),
+                strokeWidth = with(density) { 1.5.dp.toPx() },
+            )
+
+            if (selectedIndex >= 0 && indicatorAlpha > 0f) {
+                val innerLeft = barRect.left + with(density) { 8.dp.toPx() }
+                val innerWidth = barRect.width - with(density) { 16.dp.toPx() }
+                val gap = ((innerWidth - itemSize * items.size) / (items.size + 1)).coerceAtLeast(0f)
+                val centerX = innerLeft + gap + itemSize / 2f + selectedIndex * (itemSize + gap)
+                val centerY = barTop + barHeight / 2f
+                val selectionRadius = itemSize / 2f
+                val selectionPath = Path().apply {
+                    addOval(
+                        Rect(
+                            centerX - selectionRadius,
+                            centerY - selectionRadius,
+                            centerX + selectionRadius,
+                            centerY + selectionRadius,
+                        )
+                    )
+                }
+
+                clipPath(selectionPath) {
+                    drawLayer(blurLayer)
+                    drawCircle(
+                        color = colors.primary.copy(alpha = 0.12f * indicatorAlpha),
+                        radius = selectionRadius,
+                        center = Offset(centerX, centerY),
+                    )
+                    drawCircle(
+                        color = Color.White.copy(alpha = if (colors.isDark) 0.14f else 0.28f),
+                        radius = selectionRadius - with(density) { 1.dp.toPx() },
+                        center = Offset(centerX, centerY),
+                        style = Stroke(width = with(density) { 1.dp.toPx() }),
+                    )
+                }
+                // 選択領域の内側上端にだけ明るい反射を置く。
+                drawArc(
+                    color = Color.White.copy(alpha = 0.30f * indicatorAlpha),
+                    startAngle = 205f,
+                    sweepAngle = 130f,
+                    useCenter = false,
+                    topLeft = Offset(
+                        centerX - selectionRadius + with(density) { 2.dp.toPx() },
+                        centerY - selectionRadius + with(density) { 2.dp.toPx() },
+                    ),
+                    size = Size(
+                        (selectionRadius - with(density) { 2.dp.toPx() }) * 2f,
+                        (selectionRadius - with(density) { 2.dp.toPx() }) * 2f,
+                    ),
+                    style = Stroke(width = with(density) { 1.dp.toPx() }),
+                )
+            }
+        }
+
         Row(
             modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
                 .height(56.dp)
-                .clip(shape)
-                .background(colors.backgroundSoft.copy(alpha = 0.85f))
-                .border(1.dp, colors.cardBorder.copy(alpha = 0.4f), shape)
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            items.forEach { item ->
-                val selected = when {
-                    item.route == "articles" -> currentRoute?.startsWith("articles") == true
-                    else -> currentRoute == item.route
-                }
+            items.forEachIndexed { index, item ->
                 FloatingNavItemButton(
                     item = item,
-                    selected = selected,
+                    selected = index == selectedIndex,
                     onClick = { onSelect(item.route) },
                 )
             }
@@ -588,11 +813,6 @@ private fun FloatingNavItemButton(
 ) {
     val colors = LocalInfoldColors.current
     val context = LocalContext.current
-    val indicatorAlpha by animateFloatAsState(
-        targetValue = if (selected) 1f else 0f,
-        animationSpec = tween(durationMillis = 250, easing = LinearEasing),
-        label = "indicator",
-    )
     val iconScale by animateFloatAsState(
         targetValue = if (selected) 1.15f else 1f,
         animationSpec = tween(durationMillis = 250, easing = LinearEasing),
@@ -604,16 +824,13 @@ private fun FloatingNavItemButton(
         modifier = Modifier
             .size(width = 48.dp, height = 48.dp)
             .clip(CircleShape)
-            .background(
-                color = colors.primary.copy(alpha = 0.15f * indicatorAlpha),
-            )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = item.icon,
             contentDescription = label,
-            tint = if (selected) colors.primary else colors.textFaint.copy(alpha = 0.7f),
+            tint = if (selected) colors.primary else colors.textFaint.copy(alpha = 0.72f),
             modifier = Modifier.size((22 * iconScale).dp),
         )
     }

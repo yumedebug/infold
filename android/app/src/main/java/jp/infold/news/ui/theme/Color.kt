@@ -3,8 +3,9 @@ package jp.infold.news.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // ============================================================
-// INFOLD カラーパレット — ソリッドデザイン
-// Liquid Glass（半透明）を廃止し、不透明な読みやすい配色に変更
+// INFOLD カラーパレット
+// 画面の可読性を保ちつつ、Liquid Glass サーフェスは各コンポーネント側で
+// 背景を透過して重ねる。下部ナビゲーションでは RenderEffect も使用する。
 // ============================================================
 
 // ---- ネオンアクセント ----
@@ -12,7 +13,7 @@ val NeonCyan = Color(0xFF00E0FF)
 val NeonViolet = Color(0xFF8B5CFF)
 val NeonPink = Color(0xFFFF3D9A)
 
-// ---- ダークテーマ（ソリッド） ----
+// ---- ダークテーマ ----
 val DarkBg = Color(0xFF0F1118)
 val DarkBgSoft = Color(0xFF1A1D2B)
 val DarkCard = Color(0xFF1E2235)
@@ -29,7 +30,7 @@ val DarkWarn = Color(0xFFFFB020)
 val DarkHeader = Color(0xFF161927)
 val DarkCardBorder = Color(0xFF2A2E42)
 
-// ---- ライトテーマ（ソリッド） ----
+// ---- ライトテーマ ----
 val LightBg = Color(0xFFF3F4F8)
 val LightBgSoft = Color(0xFFE8EAF0)
 val LightCard = Color(0xFFFFFFFF)
