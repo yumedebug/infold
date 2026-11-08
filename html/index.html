@@ -510,36 +510,23 @@ input, textarea, select { font-family: inherit; font-size: 14.5px; color: var(--
 }
 .prose a:hover { color: var(--accent); text-decoration-color: var(--accent); }
 
-/* in-article ad (忍者ADMAX) */
-.admax-slot, .ad-in-article {
+/* in-article ad (meax) */
+.ad-meax-slot, .ad-in-article {
   display: flex; justify-content: center; align-items: center;
   margin: 2.4em 0; min-height: 60px; max-width: 100%; overflow: hidden;
 }
-/* 広告ブロッカーでADMAXが表示されないときのフォールバック広告
-   (端末に応じて横幅を 320 / 468 / 728 に変更) */
-.admax-fallback {
-  position: relative;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 4px;
-  width: 320px; max-width: 100%; height: 100px;
-  padding: 10px 18px;
-  background: linear-gradient(135deg, var(--primary-soft), var(--glass));
-  border: 1px solid var(--glass-border); border-radius: 12px;
-  color: var(--text); text-decoration: none; text-align: center;
-  box-shadow: inset 0 1px 0 var(--glass-hi), 0 2px 8px rgba(16, 24, 40, .06);
-  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+/* 広告は少しだけブルーさせて本文から切り離す（hover / フォーカスで解除） */
+.ad-meax .meax-ad {
+  width: 100%; display: flex; justify-content: center;
+  filter: blur(1.4px);
+  transition: filter .3s ease;
 }
-html[data-device="tablet"] .admax-fallback { width: 468px; }
-html[data-device="desktop"] .admax-fallback { width: 728px; }
-.admax-fallback:hover { border-color: var(--primary); box-shadow: var(--glow); transform: translateY(-1px); }
-.admax-fallback .af-title { font-size: clamp(14px, 2.4vw, 18px); font-weight: 800; letter-spacing: .01em; line-height: 1.35; }
-.admax-fallback .af-desc { font-size: clamp(11px, 1.5vw, 13px); color: var(--muted); font-weight: 600; line-height: 1.45; }
-.admax-fallback .af-cta { font-size: clamp(11px, 1.5vw, 13px); font-weight: 700; color: var(--primary); }
+.ad-meax .meax-ad iframe, .ad-meax .meax-ad img { max-width: 100%; border: 0; }
+.ad-meax:hover .meax-ad, .ad-meax:focus-within .meax-ad { filter: none; }
 
 /* 広告なしモード（ポイント特典）: 広告・プロモーション枠を親コンテナごと非表示 */
-html[data-adfree="1"] .admax-slot,
-html[data-adfree="1"] .ad-in-article,
-html[data-adfree="1"] .admax-fallback { display: none !important; }
+html[data-adfree="1"] .ad-meax-slot,
+html[data-adfree="1"] .ad-in-article { display: none !important; }
 
 /* ============ points / account (Liquid Glass) ============ */
 .pts-wrap { width: 100%; max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; padding: 26px 0 60px; }
@@ -2680,6 +2667,122 @@ textarea.input { height: auto; min-height: 120px; padding: 12px 14px; }
   .footer-grid { grid-template-columns: 1fr; gap: var(--sp-6); }
   .pts-hero { padding: var(--sp-5); }
 }
+
+/* ============================================================
+   4.0h おすすめは 1記事だけを大きく（TOP STORY）
+   − 最新ニュースの先頭記事を全幅の 1 枚で見せる
+   − サイドの小リストは廃止（続きは「最新ニュース」で見せる）
+   ============================================================ */
+.home-hero > .container { padding-top: var(--sp-6); }
+.hero-feature {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: clamp(430px, 46vw, 680px);
+  border: 1px solid var(--border);
+  background: #0E1013;
+  color: #fff;
+  text-decoration: none;
+}
+.hero-feature > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.001);
+  transition: transform .9s cubic-bezier(.2, .7, .2, 1);
+}
+.hero-feature:hover > img { transform: scale(1.035); }
+.hero-feature > img.img-fail { opacity: 0; }
+.hero-feature .hero-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(10, 11, 13, .1) 0%, rgba(10, 11, 13, .45) 42%, rgba(10, 11, 13, .93) 100%),
+    linear-gradient(90deg, rgba(10, 11, 13, .78) 0%, rgba(10, 11, 13, .1) 62%);
+}
+.hero-feature-body {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: clamp(24px, 3.4vw, 56px);
+}
+.hero-feature-kicker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin: 0 0 var(--sp-4);
+  font-size: var(--fs-label);
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #C8CCD2;
+}
+.hero-feature-kicker .hero-pick {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  background: var(--primary);
+  color: var(--on-primary);
+  letter-spacing: .12em;
+}
+.hero-feature-kicker .hero-dot { color: var(--faint); }
+.hero-feature-body h1 {
+  margin: 0 0 var(--sp-4);
+  max-width: 1040px;
+  font-size: clamp(30px, 4.35vw, 66px);
+  line-height: 1.04;
+  letter-spacing: -.035em;
+  font-weight: 900;
+  text-wrap: balance;
+}
+.hero-feature-body p {
+  margin: 0 0 var(--sp-6);
+  max-width: 740px;
+  color: #D3D7DD;
+  font-size: clamp(14px, 1.05vw, 16.5px);
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hero-feature-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+.hero-feature-foot time {
+  color: #A6ABB2;
+  font-size: var(--fs-label);
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.hero-feature:hover .btn-primary { background: var(--primary-2); }
+.hero-feature:has(img.img-fail) { min-height: 360px; }
+.skeleton.sk-hero { min-height: clamp(430px, 46vw, 680px); border-radius: 0; }
+
+@media (max-width: 1080px) {
+  .hero-feature { min-height: 420px; }
+  .hero-feature-body h1 { font-size: clamp(28px, 4.6vw, 48px); }
+}
+@media (max-width: 768px) {
+  .hero-feature { min-height: 380px; }
+  .hero-feature-body { padding: var(--sp-5) var(--sp-4) var(--sp-5); }
+  .hero-feature-body h1 { font-size: clamp(25px, 7.2vw, 33px); margin-bottom: var(--sp-3); }
+  .hero-feature-body p { -webkit-line-clamp: 2; margin-bottom: var(--sp-5); }
+  .hero-feature-foot .btn { height: 40px; }
+}
+/* 4.0h */
 </style>
 </head>
 <body>
@@ -3818,10 +3921,7 @@ function skeletonCards(n) {
 function skeletonHome() {
   return `
   <div class="container page-enter">
-    <div class="hero-grid" style="margin-top:26px">
-      <div class="skeleton sk-hero"></div>
-      <div class="hero-side"><div class="skeleton sk-side"></div><div class="skeleton sk-side"></div><div class="skeleton sk-side"></div><div class="skeleton sk-side"></div></div>
-    </div>
+    <div class="skeleton sk-hero" style="margin-top:26px"></div>
     <div class="section"><div class="skeleton sk-line w40" style="height:24px"></div>
     <div class="grid auto-grid" style="margin-top:18px">${skeletonCards(6)}</div></div>
   </div>`;
@@ -3922,16 +4022,14 @@ function renderContent(text) {
   return withAdSlots(parts);
 }
 
-/* ---------------- in-article ads (忍者ADMAX) ---------------- */
-const ADMAX_SRC = 'https://adm.shinobi.jp/s/3361ef4376fbb4547dd372b6dece042c';
-/* ADMAXが広告ブロッカーでブロックされたときに表示する自サイト宣伝バナー */
-const FALLBACK_AD_URL = 'https://aichat.xn--9ckkn.top/';
-/* 端末別の広告横幅 (phone / tablet / desktop) */
-const AD_WIDTHS = { phone: 320, tablet: 468, desktop: 728 };
+/* ---------------- in-article ads (meax) ---------------- */
+const MEAX_SRC = 'https://maa-sdk.dstk.jp/tag/v1.js';
+const MEAX_APP = 'app-c2b1dcceb0d4';
+const MEAX_UNIT = 'unit-42ba5ed414cc';
 
-/* placeholder div (実際の広告タグは injectAdmax() で差し込む) */
+/* placeholder div (実際の広告タグは injectMeax() で差し込む) */
 function adSlotHtml() {
-  return '<div class="admax-slot"></div>';
+  return '<div class="ad-meax-slot"></div>';
 }
 
 /* 本文のブロック(段落・見出し)の間に広告を 1〜2 回配置する。
@@ -3952,61 +4050,37 @@ function withAdSlots(parts) {
 }
 
 /* innerHTML で挿入した <script> は実行されないため、
-   プレースホルダを実際の広告タグ(script要素)に置き換えて読み込む */
-function injectAdmax(root) {
+   プレースホルダを meax の広告タグに置き換えてから SDK を読み込む */
+let meaxSdkLoading = false;
+function loadMeaxSdk() {
+  if (meaxSdkLoading) return;
+  meaxSdkLoading = true;
+  const s = document.createElement('script');
+  s.src = MEAX_SRC;
+  s.async = true;
+  // 読み込み後にフラグを戻し、SPA遷移後の再描画でも広告枠を走査させる
+  s.onload = () => { meaxSdkLoading = false; };
+  s.onerror = () => { meaxSdkLoading = false; };
+  document.head.appendChild(s);
+}
+function injectMeax(root) {
   // 広告なしモード中は広告枠ごと挿入しない（空きスペースも残さない）
   if (document.documentElement.dataset.adfree === '1') return;
-  $$('.admax-slot', root).forEach((slot) => {
+  const slots = $$('.ad-meax-slot', root);
+  if (!slots.length) return;
+  slots.forEach((slot) => {
     const wrap = document.createElement('div');
-    wrap.className = 'ad-in-article';
-    const s = document.createElement('script');
-    s.src = ADMAX_SRC;
-    s.async = true;
-    wrap.append(document.createComment(' admax '), s, document.createComment(' admax '));
+    wrap.className = 'ad-in-article ad-meax';
+    const ad = document.createElement('div');
+    ad.className = 'meax-ad';
+    ad.setAttribute('data-meax-app', MEAX_APP);
+    ad.setAttribute('data-meax-unit', MEAX_UNIT);
+    ad.setAttribute('data-meax-size', 'article');
+    ad.setAttribute('data-meax-layout', 'card');
+    wrap.appendChild(ad);
     slot.replaceWith(wrap);
-
-    // 端末に応じてADMAXの広告(iframe)を横幅に合わせて拡大/縮小する
-    const fitAdmax = () => {
-      const ifr = wrap.querySelector('iframe');
-      if (!ifr) return;
-      const dev = document.documentElement.dataset.device || 'phone';
-      const target = Math.min(AD_WIDTHS[dev] || 320, wrap.parentElement ? wrap.parentElement.clientWidth : 320);
-      const nw = parseFloat(ifr.getAttribute('width')) || ifr.offsetWidth || 0;
-      const nh = parseFloat(ifr.getAttribute('height')) || ifr.offsetHeight || 0;
-      if (!nw || !nh || !target) return;
-      const scale = target / nw;
-      ifr.style.transform = 'scale(' + scale + ')';
-      ifr.style.transformOrigin = 'center';
-      wrap.style.width = Math.round(nw * scale) + 'px';
-      wrap.style.height = Math.round(nh * scale) + 'px';
-      clearInterval(fitTimer);
-    };
-    const fitTimer = setInterval(fitAdmax, 500);
-    setTimeout(() => clearInterval(fitTimer), 15000);
-
-    // 広告ブロッカー等でADMAXの広告が表示されない場合のフォールバック広告
-    const showFallback = () => {
-      if (wrap.querySelector('iframe') || wrap.querySelector('.admax-fallback')) return;
-      const fb = document.createElement('a');
-      fb.className = 'admax-fallback';
-      fb.href = FALLBACK_AD_URL;
-      fb.target = '_blank';
-      fb.rel = 'noopener noreferrer';
-      const title = document.createElement('span');
-      title.className = 'af-title';
-      title.textContent = '無料で使えるAIチャット AIChat';
-      const desc = document.createElement('span');
-      desc.className = 'af-desc';
-      desc.textContent = '質問・相談・アイデア出し、なんでもAIに聞ける';
-      const cta = document.createElement('span');
-      cta.className = 'af-cta';
-      cta.textContent = FALLBACK_AD_URL + ' ｜ 無料ではじめる →';
-      fb.append(title, desc, cta);
-      wrap.appendChild(fb);
-    };
-    s.onerror = showFallback; // スクリプト自体がブロックされた場合
-    setTimeout(showFallback, 3500); // 読み込めてもiframeが表示されない場合の保険
   });
+  loadMeaxSdk();
 }
 function linkCard(url) {
   // url is already HTML-escaped here (renderContent escapes the whole text),
@@ -4158,12 +4232,6 @@ function readingMinutes(text) {
   const len = String(text || '').replace(/\s+/g, '').length;
   return Math.max(1, Math.round(len / 450));
 }
-function heroSideItem(a) {
-  return `<a class="hero-side-item" data-nav="/article/${a.id}">
-    <div class="hero-side-thumb"><img loading="lazy" src="${esc(thumbSrc(a.thumbnail))}" alt="" onerror="__infoldImgFail(this)"></div>
-    <div><h3>${esc(a.title)}</h3><time>${esc(fmtDate(a.published_at || a.created_at))}</time></div>
-  </a>`;
-}
 function latestItem(a, i) {
   const rank = String((Number(i) || 0) + 1).padStart(2, '0');
   return `<a class="latest-item" data-nav="/article/${a.id}">
@@ -4204,7 +4272,6 @@ async function renderHome(app) {
     if (!all.length) { app.innerHTML = '<div class="container" style="padding-top:40px">' + emptyBox() + '</div>'; return; }
 
     const hero = all[0];
-    const side = all.slice(1, 5);
     const latest = all.slice(1, 10);
     const lead = latest[0] || hero;
     const latestList = latest.slice(1, 5);
@@ -4226,26 +4293,24 @@ async function renderHome(app) {
     <div class="home page-enter">
       <section class="home-hero">
         <div class="container">
-          <div class="hero-main">
-            <a class="hero-main-card" data-nav="/article/${hero.id}">
-              <img src="${esc(heroImg)}" alt="${esc(hero.title)}" onerror="__infoldImgFail(this)">
-              <div class="hero-shade"></div>
-              <div class="hero-main-body">
-                <div class="hero-kicker">${esc(categoryName(hero.category))} / ${esc(hero.source_name || 'INFOLD')}</div>
-                <h1>${esc(hero.title)}</h1>
-                ${hero.description ? '<p>' + esc(hero.description) + '</p>' : ''}
-                <div class="hero-meta">
-                  <time>${esc(fmtDate(hero.published_at || hero.created_at))}</time>
-                  ${hero.source_name ? '<span>·</span><span>' + esc(hero.source_name) + '</span>' : ''}
-                </div>
-                <div class="hero-actions"><span class="btn btn-primary">${esc(t('home.readStory'))} →</span></div>
+          <a class="hero-feature" data-nav="/article/${hero.id}">
+            <img src="${esc(heroImg)}" alt="${esc(hero.title)}" onerror="__infoldImgFail(this)">
+            <div class="hero-shade"></div>
+            <div class="hero-feature-body">
+              <div class="hero-feature-kicker">
+                <span class="hero-pick">${esc(t('home.heroTag'))}</span>
+                <span>${esc(categoryName(hero.category))}</span>
+                <span class="hero-dot">/</span>
+                <span>${esc(hero.source_name || 'INFOLD')}</span>
               </div>
-            </a>
-            <div class="hero-side-2">
-              <div class="hero-side-head"><span>${esc(t('home.latest'))}</span><a data-nav="/articles">${esc(t('common.viewAll'))} →</a></div>
-              <div class="hero-side-list">${side.map(heroSideItem).join('')}</div>
+              <h1>${esc(hero.title)}</h1>
+              ${hero.description ? '<p>' + esc(hero.description) + '</p>' : ''}
+              <div class="hero-feature-foot">
+                <span class="btn btn-primary">${esc(t('home.readStory'))} →</span>
+                <time>${esc(fmtDate(hero.published_at || hero.created_at))}</time>
+              </div>
             </div>
-          </div>
+          </a>
         </div>
       </section>
 
@@ -4441,7 +4506,7 @@ async function renderArticleDetail(app, id) {
       </section>` : ''}
     </div>`;
     hydrateLinkCards(app);
-    injectAdmax(app);
+    injectMeax(app);
     startReadingTracking(a.id);
     maybeTranslateArticle(app, a);
   } catch (err) {
@@ -4474,7 +4539,7 @@ async function maybeTranslateArticle(app, a) {
   if (prose) prose.innerHTML = renderContent(translated);
   // Re-hydrate any OGP link cards created by the translated text.
   hydrateLinkCards(app);
-  injectAdmax(app);
+  injectMeax(app);
   // Keep the original Japanese reachable via a small toggle (per article view).
   const head = $('.article-head', app);
   if (head && !head.querySelector('.tr-toggle')) {
@@ -4485,7 +4550,7 @@ async function maybeTranslateArticle(app, a) {
     btn.onclick = () => {
       const p = $('.prose', app);
       if (p) p.innerHTML = renderContent(a.content);
-      injectAdmax(p);
+      injectMeax(p);
       btn.remove();
     };
     head.appendChild(btn);

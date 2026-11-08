@@ -400,12 +400,12 @@ async function listArticles(env, url) {
   const whereSql = where.join(' AND ');
 
   const countRow = await env.DB.prepare(`SELECT COUNT(*) AS total FROM articles WHERE ${whereSql}`).bind(...params).first();
-  // Prioritise INFOLD originals (AI-generated + hand-written) over external
-  // imports: non-ITFIS rows sort first, then featured, then newest.
+  // Newest first across every source: ITFIS imports are streamed hourly, so
+  // they must be able to take the top of "Latest News" (and the home hero).
   const rows = await env.DB.prepare(
     `SELECT id, title, description, thumbnail, category, featured, source_url, source_name, published_at, is_automated
      FROM articles WHERE ${whereSql}
-     ORDER BY (source_name = 'ITFIS') ASC, featured DESC, published_at DESC, id DESC
+     ORDER BY published_at DESC, featured DESC, id DESC
      LIMIT ? OFFSET ?`
   ).bind(...params, limit, (page - 1) * limit).all();
 
@@ -447,7 +447,7 @@ async function searchArticles(env, url) {
     `SELECT id, title, description, thumbnail, category, featured, source_name, published_at
      FROM articles WHERE status = 'published'
        AND (title LIKE ? OR description LIKE ? OR content LIKE ? OR category LIKE ?)
-     ORDER BY (source_name = 'ITFIS') ASC, featured DESC, published_at DESC, id DESC LIMIT 50`
+     ORDER BY published_at DESC, featured DESC, id DESC LIMIT 50`
   ).bind(like, like, like, like).all();
   return json({ articles: rows.results || [], total: (rows.results || []).length, q });
 }

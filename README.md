@@ -157,7 +157,7 @@ npm run db:tables   # テーブル一覧（remote・ニュース用D1）
 - 読者アカウント（`/account` で登録・ログイン）が記事を読了（30秒経過 + 本文80%スクロール）すると +1 POINT。
   同じ記事は3時間ごとに再獲得可能（`/api/articles/:id/complete`）。
 - ポイントページ（`/points`）で「一時的な広告削除」を利用（10pt→6h / 30pt→24h / 70pt→7日間）。
-  広告なし中は Ninja AdMax 広告枠と AIChatプロモーションバナーが非表示になります。
+  広告なし中は本文中の meax 広告枠（`html/index.html` の `injectMeax()`）が非表示になります。
 - データは**専用D1 `INFOLD_POINTS`**（binding `POINTS`）に保存。既存のニュース用D1のテーブルは変更していません
   （読者アカウントは既存D1に新規テーブル `readers` / `reader_sessions` を追加）。
 

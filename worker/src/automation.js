@@ -326,12 +326,152 @@ function normalizeTitle(s) {
 // ITFIS full-text import (RSS -> direct publish, no AI)
 // ------------------------------------------------------------
 
+const ITFIS_FEED = 'https://itfis.net/feed';
 const ITFIS_API = 'https://itfis.net/wp-json/wp/v2/posts';
 const ITFIS_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
+/* RSS は WordPress 既定で 1 ページ 10 件。新しい記事は先頭ページに並ぶ。 */
+const ITFIS_FEED_PAGES = 2;
+const MAX_IMPORT_PER_RUN = 25;
 
-/** Pull ALL itfis.net posts via the WP REST API (paged), dedupe by URL/title. */
+/** Cron entry: stream itfis.net articles from its RSS feed.
+ *  The WP REST API is only used when the feed itself is unreachable. */
 async function importItfis(env) {
+  const rss = await importItfisRss(env);
+  if (rss.ok) return rss;
+  console.log(`[automation] ITFIS RSS failed (${rss.error || 'unknown'}), trying WP REST`);
+  return importItfisRest(env);
+}
+
+/** Read one <tag> value from an RSS <item> block (CDATA unwrapped). */
+function rssField(block, tag) {
+  const m = String(block).match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+  if (!m) return '';
+  return m[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim();
+}
+
+/** Image URL inside feed HTML (src / lazy data-src). */
+function extractFeedImage(html) {
+  const direct = extractFirstImage(html);
+  if (direct) return direct;
+  const m = String(html || '').match(/(?:data-src|data-lazy-src|data-original)=["'](https?:\/\/[^"']+)["']/i);
+  return m ? m[1] : '';
+}
+
+/** og:image of an itfis.net post (the RSS feed carries no featured image). */
+async function fetchOgImage(url) {
+  try {
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': ITFIS_UA, Accept: 'text/html' },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!resp.ok) return '';
+    const html = await resp.text();
+    const m =
+      html.match(/<meta[^>]+(?:property|name)=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']og:image["']/i);
+    return m && /^https?:\/\//i.test(m[1]) ? m[1] : '';
+  } catch {
+    return '';
+  }
+}
+
+/** Duplicate-detection keys for already-imported external articles. */
+async function itfisExistingKeys(env) {
+  const existing = await env.DB.prepare(
+    `SELECT source_url, title FROM articles
+     WHERE is_automated = 1 AND source_url IS NOT NULL AND source_url != ''`
+  ).all();
+  return {
+    existingUrls: new Set((existing.results || []).map((r) => r.source_url)),
+    existingTitles: (existing.results || []).map((r) => normalizeTitle(r.title)),
+  };
+}
+
+/** Insert one itfis.net article (shared by the RSS and REST paths). */
+async function saveItfisArticle(env, keys, { link, title, rawHtml, publishedAt, imageHint }) {
+  const nt = normalizeTitle(title);
+  if (keys.existingUrls.has(link)) return false;
+  if (keys.existingTitles.some((t) => t === nt || t.includes(nt) || nt.includes(t))) return false;
+
+  const content = htmlToContent(rawHtml);
+  if (!content) return false;
+  const description = String(content.split('\n\n')[0] || content)
+    .replace(/^#{1,6}\s+|^-\s+/gm, '')
+    .trim()
+    .slice(0, 200);
+  const category = detectCategory(title) || detectCategory(title + ' ' + content) || 'it';
+  let thumb = imageHint && /^https?:\/\//i.test(imageHint) ? imageHint : '';
+  if (!thumb) thumb = extractFeedImage(rawHtml);
+  if (!thumb) thumb = await fetchOgImage(link);
+  if (!thumb) thumb = await createThumbnail(env, title, category, 'ITFIS');
+
+  await env.DB.prepare(
+    `INSERT INTO articles
+       (title, description, content, thumbnail, category, status, featured,
+        source_url, source_name, published_at, is_automated, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, 'published', 0, ?, ?, ?, 1, ?, ?)`
+  ).bind(
+    title.slice(0, 200),
+    String(description || ''),
+    content,
+    thumb,
+    category,
+    link,
+    'ITFIS',
+    publishedAt,
+    publishedAt,
+    publishedAt
+  ).run();
+
+  keys.existingUrls.add(link);
+  keys.existingTitles.push(nt);
+  return true;
+}
+
+/** Stream new articles from https://itfis.net/feed (no AI, full text). */
+async function importItfisRss(env) {
+  try {
+    const keys = await itfisExistingKeys(env);
+    let imported = 0;
+    let seen = 0;
+
+    for (let page = 1; page <= ITFIS_FEED_PAGES; page += 1) {
+      if (imported >= MAX_IMPORT_PER_RUN) break;
+      const feedUrl = page === 1 ? ITFIS_FEED : `${ITFIS_FEED}?paged=${page}`;
+      const resp = await fetch(feedUrl, {
+        headers: { 'User-Agent': ITFIS_UA, Accept: 'application/rss+xml, application/xml, text/xml' },
+        signal: AbortSignal.timeout(20000),
+      });
+      if (!resp.ok) throw new Error(`feed HTTP ${resp.status}`);
+      const xml = await resp.text();
+      const items = xml.match(/<item[\s>][\s\S]*?<\/item>/gi) || [];
+      if (!items.length) break;
+      seen += items.length;
+
+      for (const item of items) {
+        if (imported >= MAX_IMPORT_PER_RUN) break;
+        const link = rssField(item, 'link');
+        const title = decodeEntities(stripTags(rssField(item, 'title'))).trim();
+        if (!link || !title) continue;
+        const rawHtml = rssField(item, 'content:encoded') || rssField(item, 'description');
+        if (!rawHtml) continue;
+        const date = new Date(rssField(item, 'pubDate'));
+        const publishedAt = Number.isNaN(date.getTime()) ? nowISO() : date.toISOString();
+        if (await saveItfisArticle(env, keys, { link, title, rawHtml, publishedAt })) imported += 1;
+      }
+    }
+
+    return { ok: true, via: 'rss', imported, seen };
+  } catch (err) {
+    const error = String((err && err.message) || err).slice(0, 300);
+    console.log(`[automation] ITFIS RSS import failed: ${error}`);
+    return { ok: false, error };
+  }
+}
+
+/** Fallback: pull ALL itfis.net posts via the WP REST API (paged). */
+async function importItfisRest(env) {
   try {
     const existing = await env.DB.prepare(
       `SELECT source_url, title FROM articles
@@ -344,8 +484,6 @@ async function importItfis(env) {
     let page = 1;
     let totalPages = 1;
     let seen = 0;
-    // Guard: hard cap so one scheduled run stays within CPU limits.
-    const MAX_IMPORT_PER_RUN = 25;
 
     do {
       const resp = await fetch(`${ITFIS_API}?per_page=100&page=${page}&_embed=1`, {
