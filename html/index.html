@@ -2549,6 +2549,57 @@ body { font-size: var(--fs-body); line-height: 1.75; }
 .home-hero { padding-top: var(--sp-6); }
 .hero-main-body h1 { font-size: clamp(30px, 3.3vw, 50px); text-wrap: balance; }
 @media (max-width: 1080px) { .home-hero { padding-top: var(--sp-5); } .hero-main-body h1 { font-size: clamp(26px, 4.4vw, 38px); } }
+
+/* ---------- 4.0d 記事ページも同じ左右端に揃える / spec-sheet rail ---------- */
+.article-page { padding-top: var(--sp-6); }
+
+/* ---------- 4.0f ページ見出し・ポイント画面も同じ幅に ---------- */
+.container.page, .container.search-page { padding-top: 0; }
+.page-head { padding: var(--sp-7) 0 var(--sp-4); margin: 0 0 var(--sp-6); }
+.pts-wrap { max-width: none; margin: 0; }
+/* 4.0f */
+
+/* ---------- 4.0g ポイント画面のガラス残りを面＋罫線に ---------- */
+.pts-wrap, .pts-card, .pts-hero, .pts-login {
+  background-image: none; box-shadow: none; border-radius: 0;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.pts-wrap { background: transparent; gap: 1px; padding-top: var(--sp-6); }
+.pts-card, .pts-login { background-color: var(--card); border: 1px solid var(--border); }
+.pts-login { padding: var(--sp-9) var(--sp-6); display: flex; flex-direction: column; align-items: center; text-align: center; }
+/* 4.0g */
+.article-page > article { max-width: none; margin: 0; }
+.article-hero { aspect-ratio: 16 / 7; max-height: 480px; border: 1px solid var(--border); }
+.article-head { max-width: none; margin: var(--sp-6) 0 0; }
+.article-body { display: grid; grid-template-columns: minmax(0, 1fr) 288px; gap: var(--sp-8); align-items: start; margin-top: var(--sp-6); }
+.article-main { min-width: 0; }
+.article-rail { position: sticky; top: calc(var(--header-h) + var(--sp-5)); display: flex; flex-direction: column; gap: var(--sp-4); }
+.spec { border: 1px solid var(--border); background: var(--card); }
+.spec-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: var(--sp-3); align-items: baseline; padding: 13px var(--sp-4); border-bottom: 1px solid var(--border); }
+.spec-row:last-child { border-bottom: 0; }
+.spec-k { color: var(--faint); font-size: var(--fs-label); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.spec-v { color: var(--text); font-size: var(--fs-sm); font-weight: 700; font-variant-numeric: tabular-nums; }
+.article-main .prose { max-width: none; margin: 0; }
+.prose { font-size: 16.5px; line-height: 1.95; }
+.prose p { margin: 0 0 var(--sp-4); }
+.prose h2 { margin: var(--sp-7) 0 var(--sp-3); padding-bottom: var(--sp-2); font-size: 21px; line-height: 1.35; letter-spacing: -.02em; }
+.prose h3 { margin: var(--sp-5) 0 var(--sp-2); font-size: var(--fs-h3); line-height: 1.45; }
+.prose img { max-width: 100%; border: 1px solid var(--border); }
+.prose blockquote { margin: var(--sp-5) 0; padding: var(--sp-4) var(--sp-5); border-left: 3px solid var(--primary); background: var(--card); color: var(--muted); }
+.article-page .source-box, .article-page .points-note { margin-top: var(--sp-5); }
+@media (max-width: 980px) {
+  .article-body { grid-template-columns: 1fr; gap: 0; margin-top: var(--sp-5); }
+  .article-rail { display: none; }
+  .article-hero { aspect-ratio: 16 / 9; }
+}
+
+/* ---------- 4.0e コンテナの左右ガターを必ず保持（padding 0 に潰されていた） ---------- */
+.container.article-page, .container.page, .container.search-page {
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right));
+}
+.article-page { padding-top: var(--sp-6); }
+
 .article-hero > img { background: var(--bg-soft); }
 
 /* ---------- 7. ボタン / チップ / 入力（高さを固定） ---------- */
@@ -4281,9 +4332,9 @@ function chipRow() {
 
 async function renderArticleList(app, query, category) {
   state.articleList = { category, page: 1, loading: false, total: 0, end: false };
+  await loadCategories();
   const title = category ? categoryName(category) : t('articles.title');
   setDocMeta(category ? title + ' | INFOLD' : t('meta.homeTitle'), t('meta.homeDesc'), '', category ? '/category/' + encodeURIComponent(category) : '/articles');
-  await loadCategories();
   app.innerHTML = `
   <div class="container page page-enter">
     <header class="page-head">
@@ -4357,13 +4408,24 @@ async function renderArticleDetail(app, id) {
             <span class="sep"></span><span>${esc(t('article.readTime', { n: readingMinutes(a.content) }))}</span>
           </div>
         </header>
-        <div class="prose">${renderContent(a.content)}</div>
+        <div class="article-body">
+          <div class="article-main">
+            <div class="prose">${renderContent(a.content)}</div>
         ${a.source_url || a.source_name ? `
         <div class="source-box">
           <span class="src-label">${esc(t('article.source'))}</span>
           <span class="src-name">${esc(a.source_name || '')}</span>
           ${safeUrl(a.source_url) ? '<a class="src-link btn btn-ghost btn-sm" href="' + esc(safeUrl(a.source_url)) + '" target="_blank" rel="noopener noreferrer">' + esc(t('article.readOriginal')) + ' ↗</a>' : ''}
         </div>` : ''}
+          </div>
+          <aside class="article-rail" aria-label="Article info">
+            <div class="spec">
+              <div class="spec-row"><span class="spec-k">Category</span><span class="spec-v">${esc(categoryName(a.category))}</span></div>
+              <div class="spec-row"><span class="spec-k">Published</span><span class="spec-v">${esc(fmtDate(a.published_at || a.created_at))}</span></div>
+              <div class="spec-row"><span class="spec-k">Read</span><span class="spec-v">${readingMinutes(a.content)} min</span></div>
+            </div>
+          </aside>
+        </div>
         <div class="points-note">
           <strong>INFOLD POINT</strong>
           <span class="pn-text">${esc(t('article.pointsNote'))}</span>
