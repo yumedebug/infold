@@ -2,6 +2,9 @@ node_modules/
 .wrangler/
 .dev.vars
 *.log
+
+# Cloudflare へ送るファイルだけを組み立てた出力（scripts/build-cloud-deploy.mjs）
+cloud-deploy/
 .DS_Store
 
 # ---- Android（ビルドは GitHub Actions 上で行うためローカルに不要なものを除外） ----

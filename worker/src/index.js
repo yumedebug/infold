@@ -46,6 +46,15 @@ import {
   handlePushNotifications,
   notifyArticlePublished,
 } from './push.js';
+import {
+  getOpenRouterStatus,
+  updateOpenRouterSettings,
+  testOpenRouter,
+  syncNewsItems,
+  listNewsItems,
+  listGenerations,
+  generateFromNewsItem,
+} from './openrouter.js';
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_UPLOAD_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
@@ -213,6 +222,49 @@ async function handleAdmin(request, env, url, path, method) {
     const result = await runAutomationNow(env);
     if (result.ok) return json({ ok: true, articleId: result.articleId });
     return json({ ok: false, code: result.code, error: result.error }, 409);
+  }
+
+  // ---- OpenRouter AI article generation ----
+  if (method === 'GET' && path === '/api/admin/ai/status') return json(await getOpenRouterStatus(env));
+  if (method === 'POST' && path === '/api/admin/ai/settings') {
+    try {
+      return json(await updateOpenRouterSettings(env, await readBodyJson(request)));
+    } catch (err) {
+      return json({ error: err.code || 'invalid_request', message: err.message }, err.status || 400);
+    }
+  }
+  if (method === 'POST' && path === '/api/admin/ai/test') {
+    const body = await readBodyJson(request);
+    return json(await testOpenRouter(env, body?.model));
+  }
+  if (method === 'GET' && path === '/api/admin/ai/news') {
+    if (url.searchParams.get('refresh') === '1') {
+      try { await syncNewsItems(env); } catch (err) {
+        return json({ error: 'sync_failed', message: String((err && err.message) || err).slice(0, 300) }, 502);
+      }
+    }
+    return json({ items: await listNewsItems(env, 50) });
+  }
+  if (method === 'GET' && path === '/api/admin/ai/generations') {
+    return json({ generations: await listGenerations(env, 50) });
+  }
+  if (method === 'POST' && path === '/api/admin/ai/generate') {
+    const body = await readBodyJson(request);
+    const newsItemId = clampInt(body?.newsItemId, 1, 1e12, 0);
+    if (!newsItemId) return json({ error: 'news_item_required' }, 400);
+    try {
+      const result = await generateFromNewsItem(env, newsItemId, {
+        force: !!body?.force,
+        autoPublish: !!body?.autoPublish,
+      });
+      return json(result, result.duplicate ? 200 : 201);
+    } catch (err) {
+      return json({
+        error: err.code || 'generation_failed',
+        message: err.message || 'AI generation failed',
+        retryAfter: err.retryAfter || null,
+      }, err.status || 502);
+    }
   }
 
   // ---- categories ----

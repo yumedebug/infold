@@ -14,6 +14,7 @@
 // ============================================================
 
 import { jstNow, jstDateStr, jstDateTime, nowISO } from './util.js';
+import { generateDailyArticle, isOpenRouterConfigured } from './openrouter.js';
 
 const CRON_START_MINUTES = 8 * 60; // 08:00 Asia/Tokyo
 const RETRY_INTERVAL_MINUTES = 30;
@@ -149,7 +150,14 @@ export async function runAutomationNow(env) {
 
 async function runPipeline(env, today, attemptCount) {
   try {
-    const articleId = await generateArticle(env);
+    // OpenRouter is the primary AI writer when configured. If the key is
+    // absent, keep the legacy Gemini pipeline for existing deployments.
+    // When the key exists, never fall back to Gemini or a paid model:
+    // free-model failures are reported to the admin dashboard instead.
+    const result = isOpenRouterConfigured(env)
+      ? await generateDailyArticle(env)
+      : { articleId: await generateArticle(env) };
+    const articleId = result.articleId;
     await env.DB.prepare(
       `UPDATE automation_state SET status = 'success', article_id = ?, error = NULL, updated_at = ? WHERE date = ?`
     ).bind(articleId, nowISO(), today).run();

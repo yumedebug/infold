@@ -77,6 +77,57 @@ wrangler secret put GEMINI_API_KEY
 # プロンプトに Gemini API キーを入力
 ```
 
+## AI記事生成（OpenRouter）
+
+管理画面の **`/admin/ai`**（AI Article Studio）から、RSS / ITFIS のニュースをもとに
+INFOLD 独自の日本語記事を生成・編集・公開できます。
+
+### 1. Secret 設定（必須）
+
+```bash
+wrangler secret put OPENROUTER_API_KEY
+# OpenRouter の API キー（sk-or-...）を入力
+```
+
+APIキーは Worker からのみ参照され、フロントエンド・APIレスポンス・ログには出力されません。
+
+### 2. D1 マイグレーション（必須）
+
+```bash
+npm run db:migrate:ai:remote  # 本番D1（ローカルは db:migrate:ai:local）
+# = migrations/0004_ai_generations.sql（追加のみ・既存データは変更しない）
+```
+
+`ai_news_items`（生成候補ニュース）と `ai_generations`（生成履歴）を追加します。
+既存テーブル（articles / users / categories / sessions）は変更しません。
+
+### 3. モデル
+
+- 既定: `dots-studio/dots-3-note-preview:free`（無料・512K コンテキスト）
+- 比較候補: `nvidia/nemotron-3-ultra:free`
+- **`:free` モデルのみ**使用します。無料モデルが利用できない場合、自動的に有料モデルへ切り替えることはせず、
+  管理画面にエラーを表示して処理を停止します。
+- モデルIDは管理画面で変更できます。環境変数 `OPENROUTER_MODEL` を設定した場合はそちらが優先されます
+  （`wrangler secret put OPENROUTER_MODEL` または `wrangler.jsonc` の `vars`）。
+- `dots-3-note-preview:free` は 2026-12-31 に提供終了予定です。終了前に管理画面または環境変数で
+  別の `:free` モデルへ差し替えてください。
+
+### 4. 生成の流れ
+
+```text
+Cron（毎時）/ 手動「ニュースを取得」
+  → RSS（Google News / GIZMODO / GIGAZINE）+ ITFIS 記事を ai_news_items へ保存（URL重複は除外）
+  → 管理画面で記事を選択 → 「記事を生成」
+  → OpenRouter（:free モデルのみ）
+  → JSON スキーマ検証（不正な出力は保存しない）
+  → articles へ下書き保存（「生成後すぐ公開」をONにすると公開）
+  → ai_generations に生成履歴を追加（再生成しても過去の履歴は残る）
+```
+
+- 1日の生成上限は管理画面で設定できます（既定 10）。上限に達すると処理を保留します。
+- 429（レート制限）はリトライせず、その回の生成を失敗として記録し、画面に表示します。
+- 無料枠の上限値そのものは OpenRouter から正確に取得できないため、画面には推測値を表示しません。
+
 ## 動作確認
 
 | 項目 | 確認方法 |

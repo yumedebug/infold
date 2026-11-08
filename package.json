@@ -14,8 +14,11 @@
     "db:create": "wrangler d1 create news-site-db",
     "db:migrate:local": "wrangler d1 execute news-site-db --local --file=migrations/0001_initial.sql",
     "db:migrate:remote": "wrangler d1 execute news-site-db --remote --file=migrations/0001_initial.sql",
+    "db:migrate:ai:local": "wrangler d1 execute news-site-db --local --file=migrations/0004_ai_generations.sql",
+    "db:migrate:ai:remote": "wrangler d1 execute news-site-db --remote --file=migrations/0004_ai_generations.sql",
     "db:tables": "wrangler d1 execute news-site-db --remote --command=\"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;\"",
     "create-admin": "node scripts/create-admin.js",
+    "build:deploy": "node scripts/build-cloud-deploy.mjs",
     "logs": "wrangler tail"
   },
   "devDependencies": {

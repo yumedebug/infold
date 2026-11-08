@@ -8,8 +8,8 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#05070f",
-  "theme_color": "#00c8ff",
+  "background_color": "#101114",
+  "theme_color": "#101114",
   "categories": ["news", "technology"],
   "icons": [
     {
