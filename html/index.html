@@ -15,8 +15,15 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="INFOLD">
 <meta property="og:description" content="IT・AI・テクノロジーの最新ニュースを毎日お届け">
-<meta property="og:url" content="/">
+<meta property="og:url" content="https://infold.amula.me/">
+<meta property="og:image" content="https://infold.amula.me/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="INFOLD | Technology, Clearly.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://infold.amula.me/ogp.png">
+<meta name="twitter:title" content="INFOLD | Technology, Clearly.">
+<meta name="twitter:description" content="INFOLDは、IT・AI・テクノロジーの最新ニュースを分野ごとに整理して届けるニュースメディアです。Technology, Clearly.">
 <meta name="adring-site-verification" content="adring_vrf_nPVgXi0J8fch-9_u1qDOMu3NiTT0AKue">
 <script async src="https://ar-cdn.net/widget/v1.js" data-site-id="af461f22-6332-401e-b9e6-af5c87c8201a" data-variant="compact"></script>
 <style>
@@ -515,14 +522,10 @@ input, textarea, select { font-family: inherit; font-size: 14.5px; color: var(--
   display: flex; justify-content: center; align-items: center;
   margin: 2.4em 0; min-height: 60px; max-width: 100%; overflow: hidden;
 }
-/* 広告は少しだけブルーさせて本文から切り離す（hover / フォーカスで解除） */
 .ad-meax .meax-ad {
   width: 100%; display: flex; justify-content: center;
-  filter: blur(1.4px);
-  transition: filter .3s ease;
 }
 .ad-meax .meax-ad iframe, .ad-meax .meax-ad img { max-width: 100%; border: 0; }
-.ad-meax:hover .meax-ad, .ad-meax:focus-within .meax-ad { filter: none; }
 
 /* 広告なしモード（ポイント特典）: 広告・プロモーション枠を親コンテナごと非表示 */
 html[data-adfree="1"] .ad-meax-slot,
@@ -2783,6 +2786,118 @@ textarea.input { height: auto; min-height: 120px; padding: 12px 14px; }
   .hero-feature-foot .btn { height: 40px; }
 }
 /* 4.0h */
+
+/* ============================================================
+   5.0 管理画面 / 通知画面の統一
+   ------------------------------------------------------------
+   公開サイトと同じリズム（kicker → h1 → 説明 → 右アクション）に揃え、
+   面は panel 1種類・情報は info-item の行で出す。
+   ============================================================ */
+
+/* ---- シェル ---- */
+.admin-layout { grid-template-columns: 248px minmax(0, 1fr); gap: 0; padding: 0; border-top: 1px solid var(--border); }
+.admin-side { display: flex; flex-direction: column; padding: 22px 0 18px; border: 0; border-right: 1px solid var(--border); border-radius: 0; background: var(--bg-soft); }
+.admin-content { padding: var(--sp-7) var(--gutter) var(--sp-8); }
+
+/* ---- サイドナビ ---- */
+.side-kicker { display: block; margin-bottom: 10px; color: var(--primary); font-size: 9.5px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+.admin-side .side-user { margin: 0 0 4px; padding: 0 20px 16px; border-bottom: 1px solid var(--border); }
+.admin-side .side-user b { font-size: 13.5px; }
+.admin-side .side-user .side-mail { color: var(--faint); font-size: 11px; }
+.admin-nav { display: flex; flex-direction: column; padding: 8px 0; }
+.admin-nav-item { gap: 11px; padding: 11px 20px; border-left: 2px solid transparent; }
+.admin-nav-item svg { flex: 0 0 auto; opacity: .85; }
+.admin-nav-item.active { border-left-color: var(--primary); background: var(--card); color: var(--primary); }
+.admin-nav-item.active svg { opacity: 1; }
+.admin-side-foot { display: flex; flex-direction: column; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
+
+/* ---- 見出し（管理 / 通知で共通） ---- */
+.admin-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: var(--sp-4); flex-wrap: wrap;
+  margin: 0 0 var(--sp-5); padding: 0 0 var(--sp-4); border-bottom: 1px solid var(--border);
+}
+.admin-head-main { min-width: 0; }
+.admin-head h1 { margin: 0; font-size: var(--fs-h1); line-height: 1.08; letter-spacing: -.03em; }
+.admin-head .category-kicker { margin-bottom: 6px; color: var(--primary); }
+.admin-head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* 通知ページ: 公開サイトの page-head に管理画面と同じ右寄せレイアウトを足す */
+.page-head-split { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-4); flex-wrap: wrap; padding-bottom: var(--sp-4); border-bottom: 1px solid var(--border); }
+.page-head-split .category-kicker { margin-bottom: 6px; color: var(--primary); }
+.page-head-split h1 { margin: 0; font-size: var(--fs-h1); line-height: 1.08; letter-spacing: -.03em; }
+.page-head-split .page-sub { margin: var(--sp-3) 0 0; }
+
+/* ---- パネル ---- */
+.panel { padding: 0; }
+.panel > :not(.panel-head):not(.table-wrap) { padding-left: var(--sp-5); padding-right: var(--sp-5); }
+.panel > :first-child:not(.panel-head) { padding-top: var(--sp-5); }
+.panel > :last-child:not(.panel-head) { padding-bottom: var(--sp-5); }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: 18px var(--sp-5); border-bottom: 1px solid var(--border); }
+.panel-head h2 { margin: 0; font-size: 15px; letter-spacing: -.01em; }
+.panel-head-sub { margin-top: var(--sp-5); padding-left: 0; padding-right: 0; border-bottom: 0; }
+.panel > .table-wrap { border-width: 1px 0 0; }
+.panel-actions { display: flex; align-items: center; justify-content: flex-end; padding-top: var(--sp-4); }
+
+/* ---- 統計カード ---- */
+.stat-card { display: flex; flex-direction: column; gap: 6px; padding: var(--sp-5); }
+.stat-card .stat-ic { color: var(--primary); line-height: 0; }
+.stat-card .stat-ic svg { width: 18px; height: 18px; }
+.stat-card .stat-num { font-size: 34px; }
+.stat-card .stat-text { font-size: 13px; font-weight: 700; line-height: 1.5; letter-spacing: 0; word-break: break-all; }
+.stat-card .stat-label { margin-top: auto; }
+
+/* ---- 一覧ツールバー ---- */
+.admin-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; margin: 0 0 var(--sp-4); }
+.admin-toolbar .filter-pills { margin: 0; }
+.admin-search { max-width: 280px; height: 38px; }
+
+/* ステータスチップは角丸0！（旧レイヤの pill を打ち消す） */
+.status-chip { border-radius: 0; white-space: nowrap; }
+
+/* 破壊的操作は控えめな枠線ボタンに */
+.btn-quiet-danger { background: transparent; border-color: color-mix(in srgb, var(--danger) 36%, var(--border)); color: var(--danger); }
+.btn-quiet-danger:hover { background: color-mix(in srgb, var(--danger) 14%, transparent); border-color: var(--danger); color: var(--danger); }
+
+/* 設定の情報行（旧レイヤの auto-fit グリッドを打ち消す） */
+.info-list { display: block; background: none; }
+.panel .info-list .info-item { background: transparent; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; padding: 13px 0; }
+.panel .info-list > .info-item:last-child { border-bottom: 0; padding-bottom: 0; }
+
+/* ---- 通知 ---- */
+.notice-page { max-width: none; margin: 0; padding: var(--sp-7) 0 var(--sp-8); }
+.notice-grid { gap: 1px; border: 1px solid var(--border); background: var(--border); margin-bottom: 1px; }
+.notice-grid .panel { border: 0; }
+.notice-panel { margin-bottom: 1px; }
+.notice-list li { padding: 12px 0; }
+
+/* 管理画面では AIChat の FAB が表に重なるので隠す */
+html[data-admin] .aichat-fab { display: none !important; }
+
+/* ---- レスポンシブ ---- */
+@media (max-width: 1080px) {
+  .admin-layout { grid-template-columns: 1fr; }
+  .admin-side { border-right: 0; border-bottom: 1px solid var(--border); border-radius: 0; padding: 12px 0; }
+  .admin-side .side-user { display: none; }
+  .admin-nav { flex-direction: row; overflow-x: auto; padding: 0; }
+  .admin-nav-item { white-space: nowrap; border-left-width: 0; border-bottom: 2px solid transparent; padding: 10px 14px; }
+  .admin-nav-item.active { border-left-width: 0; border-bottom-color: var(--primary); background: transparent; }
+  .admin-side-foot { flex-direction: row; margin-top: 0; padding-top: 4px; border-top: 0; }
+  .admin-content { padding-top: var(--sp-5); }
+}
+@media (max-width: 720px) {
+  .admin-head { align-items: flex-start; flex-direction: column; }
+  .admin-head-actions { width: 100%; }
+  .page-head-split { align-items: flex-start; }
+  .admin-head h1, .page-head-split h1 { font-size: clamp(26px, 7vw, 34px); }
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-nav { flex-wrap: wrap; overflow-x: visible; }
+  .admin-nav-item { padding: 9px 12px; }
+  .admin-toolbar { align-items: stretch; }
+  .admin-toolbar .filter-pills { width: 100%; overflow-x: auto; }
+  .admin-search { max-width: none; width: 100%; }
+  .panel > :not(.panel-head):not(.table-wrap) { padding-left: var(--sp-4); padding-right: var(--sp-4); }
+  .panel-head { padding: 14px var(--sp-4); }
+}
 </style>
 </head>
 <body>
@@ -2868,6 +2983,9 @@ const state = {
   adminList: null,
   catAdmin: { editing: null },
 };
+
+/* OGP: 記事に画像が無いときの共通カード画像（html/ogp.png） */
+const SITE_OG_IMAGE = 'https://infold.amula.me/ogp.png';
 
 const $ = (sel, root) => (root || document).querySelector(sel);
 const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
@@ -4135,6 +4253,8 @@ async function renderNow() {
   closeMenus();
   const { path, query } = parsePath();
   const app = $('#app');
+  // 管理画面ではサイト内 AIChat の FAB が表に重なるので隠す
+  document.documentElement.toggleAttribute('data-admin', path === '/admin' || path.startsWith('/admin/'));
   if (path === '/' ) return renderHome(app);
   if (path === '/articles') return renderArticleList(app, query, null);
   const mArticle = path.match(/^\/article\/(\d+)$/);
@@ -4167,10 +4287,11 @@ async function loadCategories() {
 
 function setDocMeta(title, desc, image, canonicalPath) {
   document.title = title;
-  const setMeta = (name, content) => {
-    let el = document.querySelector('meta[name="' + name + '"]') || document.querySelector('meta[property="' + name + '"]');
-    if (!el) { el = document.createElement('meta'); document.head.appendChild(el); }
-    el.setAttribute(content && content.startsWith('og:') ? 'property' : 'name', name);
+  // OGP は property=、twitter は name= で読まれる（取り違えるとカードが出ない）
+  const setMeta = (key, content) => {
+    const attr = key.startsWith('og:') ? 'property' : 'name';
+    let el = document.querySelector('meta[' + attr + '="' + key + '"]');
+    if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
     el.setAttribute('content', content || '');
   };
   setMeta('description', desc || '');
@@ -4178,8 +4299,17 @@ function setDocMeta(title, desc, image, canonicalPath) {
   setMeta('og:description', desc || '');
   setMeta('og:type', canonicalPath && canonicalPath.startsWith('/article/') ? 'article' : 'website');
   const img = thumbSrc(image);
-  // og:image は絶対URL(https/http)のみ。data URI のプレースホルダは設定しない
-  setMeta('og:image', /^https?:/i.test(img) ? absUrl(img) : '');
+  // 記事画像が無い / data URI のときは共通の OGP 画像を使う
+  const ogImg = /^https?:/i.test(img) ? absUrl(img) : SITE_OG_IMAGE;
+  setMeta('og:image', ogImg);
+  if (ogImg === SITE_OG_IMAGE) {
+    setMeta('og:image:width', '1200');
+    setMeta('og:image:height', '630');
+  }
+  setMeta('og:image:alt', title);
+  setMeta('twitter:image', ogImg);
+  setMeta('twitter:title', title);
+  setMeta('twitter:description', desc || '');
   if (location.protocol !== 'file:') {
     const url = absUrl(canonicalPath || '/');
     let link = document.querySelector('link[rel="canonical"]');
@@ -4689,33 +4819,35 @@ async function renderNotifications(app) {
 
   app.innerHTML = [
     '<div class="container"><div class="notice-page page-enter">',
-      '<div class="notice-hero">',
-        '<div class="category-kicker" style="color:#83C441">Notifications</div>',
-        '<h1>' + esc(t('notifications.title')) + '</h1>',
-        '<p>' + esc(t('notifications.desc')) + '</p>',
-      '</div>',
+      '<header class="page-head page-head-split">',
+        '<div class="page-head-main">',
+          '<div class="category-kicker">Notifications</div>',
+          '<h1>' + esc(t('notifications.title')) + '</h1>',
+          '<p class="page-sub">' + esc(t('notifications.desc')) + '</p>',
+        '</div>',
+      '</header>',
       '<div class="notice-grid">',
-        '<section class="notice-card">',
-          '<h2>' + esc(t('notifications.browser')) + '</h2>',
+        '<section class="panel">',
+          '<div class="panel-head"><h2>' + esc(t('notifications.browser')) + '</h2></div>',
           '<p class="ai-note">' + esc(t('notifications.browserDesc')) + '</p>',
           '<div class="notice-state ' + (perm === 'granted' ? 'on' : '') + '"><span class="dot"></span>' + esc(t('notifications.permission')) + ': <b>' + esc(permLabel) + '</b></div>',
           actionHtml,
         '</section>',
-        '<section class="notice-card">',
-          '<h2>' + esc(t('notifications.statusTitle')) + '</h2>',
+        '<section class="panel">',
+          '<div class="panel-head"><h2>' + esc(t('notifications.statusTitle')) + '</h2></div>',
           '<div class="notice-state ' + (swOn ? 'on' : '') + '"><span class="dot"></span>Service Worker: <b>' + (swOn ? 'ON' : 'OFF') + '</b></div>',
           '<div class="notice-state ' + (perm === 'granted' ? 'on' : '') + '"><span class="dot"></span>Notification API: <b>' + esc(permLabel) + '</b></div>',
-          '<h2 style="margin-top:22px">' + esc(t('notifications.android')) + '</h2>',
+          '<div class="panel-head panel-head-sub"><h2>' + esc(t('notifications.android')) + '</h2></div>',
           '<p class="ai-note">' + esc(t('notifications.androidDesc')) + '</p>',
           '<p class="ai-note">' + esc(t('notifications.webPushNote')) + '</p>',
         '</section>',
       '</div>',
-      '<section class="notice-card" style="margin-top:18px">',
-        '<h2>' + esc(t('notifications.newArticles')) + '</h2>',
+      '<section class="panel notice-panel">',
+        '<div class="panel-head"><h2>' + esc(t('notifications.newArticles')) + '</h2></div>',
         newHtml,
       '</section>',
-      '<section class="notice-card" style="margin-top:18px">',
-        '<h2>' + esc(t('notifications.history')) + '</h2>',
+      '<section class="panel notice-panel">',
+        '<div class="panel-head"><h2>' + esc(t('notifications.history')) + '</h2></div>',
         logHtml,
       '</section>',
     '</div></div>',
@@ -5065,25 +5197,60 @@ async function requireAdmin() {
     throw err;
   }
 }
+/* 管理画面のアイコン（絵文字をやめて線のアイコンに統一） */
+const ADMIN_ICONS = {
+  grid: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg>',
+  file: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 4h14v16H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>',
+  plus: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  spark: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6 4.6 1.9-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18 15l.9 2.1 2.1.9-2.1.9L18 21l-.9-2.1-2.1-.9 2.1-.9z"/></svg>',
+  tag: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>',
+  sliders: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2.5"/><circle cx="10" cy="16" r="2.5"/></svg>',
+  home: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+  logout: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>',
+  news: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h13v14H4z"/><path d="M17 9h3v8a2 2 0 0 1-2 2h-1"/><path d="M7 9h7M7 13h7M7 17h4"/></svg>',
+  check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>',
+  draft: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20h4L20 8l-4-4L4 16z"/></svg>',
+  star: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 4l2.5 5.2 5.5.8-4 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4-3.9 5.5-.8z"/></svg>',
+  refresh: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.6 6"/><path d="M20 5v6h-6"/></svg>',
+  play: '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l11 7-11 7z"/></svg>',
+};
+
+/** 管理画面共通のページ見出し（kicker + タイトル + 説明 + 右側アクション） */
+function adminHead(opts) {
+  const o = opts || {};
+  return '<header class="admin-head">' +
+    '<div class="admin-head-main">' +
+      (o.kicker ? '<div class="category-kicker">' + esc(o.kicker) + '</div>' : '') +
+      '<h1>' + esc(o.title || '') + '</h1>' +
+      (o.sub ? '<p class="page-sub">' + esc(o.sub) + '</p>' : '') +
+    '</div>' +
+    (o.actions ? '<div class="admin-head-actions">' + o.actions + '</div>' : '') +
+  '</header>';
+}
+
 function adminSidebar(active) {
   const items = [
-    ['/admin', 'admin.dashboard', '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>'],
-    ['/admin/articles', 'admin.articles', '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 4h14v16H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>'],
-    ['/admin/articles/new', 'admin.newArticle', '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'],
-    ['/admin/ai', 'admin.ai', '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6 4.6 1.9-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18 15l.9 2.1 2.1.9-2.1.9L18 21l-.9-2.1-2.1-.9 2.1-.9z"/></svg>'],
-    ['/admin/categories', 'admin.categories', '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>'],
-    ['/admin/settings', 'admin.settings', '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2.5"/><circle cx="10" cy="16" r="2.5"/></svg>'],
+    ['/admin', 'admin.dashboard', ADMIN_ICONS.grid],
+    ['/admin/articles', 'admin.articles', ADMIN_ICONS.file],
+    ['/admin/articles/new', 'admin.newArticle', ADMIN_ICONS.plus],
+    ['/admin/ai', 'admin.ai', ADMIN_ICONS.spark],
+    ['/admin/categories', 'admin.categories', ADMIN_ICONS.tag],
+    ['/admin/settings', 'admin.settings', ADMIN_ICONS.sliders],
   ];
   return `
   <aside class="admin-side">
     <div class="side-user">
+      <span class="side-kicker">Admin Console</span>
       <b>${esc(state.me ? state.me.name : '')}</b>
-      <span>${esc(state.me ? state.me.email : '')}</span>
+      <span class="side-mail">${esc(state.me ? state.me.email : '')}</span>
     </div>
-    ${items.map(([path, key, icon]) => '<a class="admin-nav-item ' + (active === path ? 'active' : '') + '" data-nav="' + path + '">' + icon + '<span>' + esc(t(key)) + '</span></a>').join('')}
-    <div class="admin-nav-item" style="cursor:default"></div>
-    <a class="admin-nav-item" data-nav="/">${'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>'}<span>${esc(t('admin.viewSite'))}</span></a>
-    <button class="admin-nav-item" data-action="admin-logout">${'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>'}<span>${esc(t('admin.logout'))}</span></button>
+    <nav class="admin-nav">
+      ${items.map(([path, key, icon]) => '<a class="admin-nav-item ' + (active === path ? 'active' : '') + '" data-nav="' + path + '">' + icon + '<span>' + esc(t(key)) + '</span></a>').join('')}
+    </nav>
+    <div class="admin-side-foot">
+      <a class="admin-nav-item" data-nav="/">${ADMIN_ICONS.home}<span>${esc(t('admin.viewSite'))}</span></a>
+      <button class="admin-nav-item" data-action="admin-logout">${ADMIN_ICONS.logout}<span>${esc(t('admin.logout'))}</span></button>
+    </div>
   </aside>`;
 }
 function adminShell(active, contentHtml) {
@@ -5094,6 +5261,8 @@ async function renderAdmin(app, path) {
   if (path === '/admin/login') return renderAdminLogin(app);
   const user = await requireAdmin();
   if (!user) return;
+  // カテゴリ名（slug ではなく表示名）で一覧を出すため先に読み込む
+  await loadCategories().catch(() => {});
   renderHeader(); renderFooter(); // refresh admin link in chrome
   if (path === '/admin' || path === '/admin/') return renderAdminDashboard(app, user);
   if (path === '/admin/articles') return renderAdminArticles(app);
@@ -5111,6 +5280,7 @@ function renderAdminLogin(app) {
   app.innerHTML = `
   <div class="login-wrap page-enter">
     <div class="login-card">
+      <div class="category-kicker" style="color:var(--primary)">Admin Sign In</div>
       <div class="login-logo">${logoMark(40)}<span class="brand-name">INFOLD</span></div>
       <h1>${esc(t('admin.loginTitle'))}</h1>
       <p class="login-sub">${esc(t('admin.loginSub'))}</p>
@@ -5156,67 +5326,68 @@ function renderAdminLogin(app) {
 
 async function renderAdminDashboard(app, user) {
   setDocMeta(t('admin.dashboard') + ' | INFOLD', '', '', '/admin');
-  app.innerHTML = adminShell('/admin', `
-    <div class="admin-head">
-      <h1>${esc(t('admin.dashboard'))}</h1>
-      <span class="spacer"></span>
-      <span class="badge badge-ok">${esc(t('admin.welcome'))}, ${esc(user.name || user.email)}</span>
-    </div>
-    <div class="stat-grid" id="stats-grid">
-      ${Array.from({ length: 4 }, () => '<div class="stat-card"><div class="skeleton sk-line w40" style="height:30px"></div><div class="skeleton sk-line w80" style="height:12px;margin-top:8px"></div></div>').join('')}
-    </div>
-    <div class="panel" id="auto-panel"><h2>${esc(t('admin.automationCard'))}</h2><div class="skeleton sk-line w90"></div><div class="skeleton sk-line w60" style="margin-top:10px"></div></div>
-    <div class="panel" id="latest-panel"><h2>${esc(t('admin.latestArticles'))}</h2><div class="skeleton sk-line w90"></div></div>
-  `);
+  app.innerHTML = adminShell('/admin', [
+    adminHead({
+      kicker: 'ADMIN / OVERVIEW',
+      title: t('admin.dashboard'),
+      actions: '<span class="badge badge-ok">' + esc(t('admin.welcome')) + ', ' + esc(user.name || user.email) + '</span>',
+    }),
+    '<div class="stat-grid" id="stats-grid">',
+      Array.from({ length: 4 }, () => '<div class="stat-card"><span class="stat-ic">' + ADMIN_ICONS.grid + '</span><div class="skeleton sk-line w40" style="height:30px"></div><div class="skeleton sk-line w80" style="height:12px;margin-top:8px"></div></div>').join(''),
+    '</div>',
+    '<div class="panel" id="auto-panel"><div class="panel-head"><h2>' + esc(t('admin.automationCard')) + '</h2></div><div id="auto-body"><div class="skeleton sk-line w90"></div><div class="skeleton sk-line w60" style="margin-top:10px"></div></div></div>',
+    '<div class="panel" id="latest-panel"><div class="panel-head"><h2>' + esc(t('admin.latestArticles')) + '</h2></div><div id="latest-body"><div class="skeleton sk-line w90"></div></div></div>',
+  ].join(''));
   try {
     const res = await api.get('/api/admin/stats');
     const s = res.stats;
-    $('#stats-grid').innerHTML = `
-      <div class="stat-card"><div class="stat-icon">📰</div><div class="stat-num">${s.total}</div><div class="stat-label">${esc(t('admin.total'))}</div></div>
-      <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-num">${s.published}</div><div class="stat-label">${esc(t('admin.published'))}</div></div>
-      <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-num">${s.drafts}</div><div class="stat-label">${esc(t('admin.drafts'))}</div></div>
-      <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-num">${s.featured}</div><div class="stat-label">${esc(t('admin.featured'))}</div></div>`;
+    const statCard = (icon, num, label) => '<div class="stat-card"><span class="stat-ic">' + icon + '</span><div class="stat-num">' + num + '</div><div class="stat-label">' + esc(label) + '</div></div>';
+    $('#stats-grid').innerHTML =
+      statCard(ADMIN_ICONS.news, s.total, t('admin.total')) +
+      statCard(ADMIN_ICONS.check, s.published, t('admin.published')) +
+      statCard(ADMIN_ICONS.draft, s.drafts, t('admin.drafts')) +
+      statCard(ADMIN_ICONS.star, s.featured, t('admin.featured'));
     const at = res.automation;
     const today = at.today;
-    $('#auto-panel').innerHTML = '<h2>' + esc(t('admin.automationCard')) + '</h2>' +
-      '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">' +
-      statusChip(today ? today.status : 'pending') +
-      '<span class="hint">' + esc(at.todayDate + ' ' + t('admin.settings.time') + ': ' + at.settings.time + ' (' + at.settings.timezone + ')') + '</span>' +
-      (today && today.attempt_count ? '<span class="hint">' + esc(t('admin.settings.attemptCount') + ': ' + today.attempt_count) + '</span>' : '') +
+    $('#auto-body').innerHTML =
+      '<div class="info-list">' +
+        '<div class="info-item"><div class="k">' + esc(t('admin.settings.todayStatus')) + '</div><div class="v">' + statusChip(today ? today.status : 'pending') + '<span class="small">' + esc(at.todayDate) + '</span></div></div>' +
+        '<div class="info-item"><div class="k">' + esc(t('admin.settings.time')) + '</div><div class="v">' + esc(at.settings.time + ' (' + at.settings.timezone + ')') + '</div></div>' +
+        (today && today.attempt_count ? '<div class="info-item"><div class="k">' + esc(t('admin.settings.attemptCount')) + '</div><div class="v">' + today.attempt_count + '</div></div>' : '') +
+        (today && today.error ? '<div class="info-item"><div class="k">' + esc(t('admin.settings.error')) + '</div><div class="v" style="color:var(--danger)">' + esc(today.error) + '</div></div>' : '') +
       '</div>' +
-      (today && today.error ? '<p class="hint" style="margin:10px 0 0;color:var(--danger)">' + esc(t('admin.settings.error') + ': ' + today.error) + '</p>' : '') +
-      '<div style="margin-top:14px"><a class="btn btn-ghost btn-sm" data-nav="/admin/settings">' + esc(t('admin.settings.title')) + ' →</a></div>';
+      '<div class="panel-actions"><a class="btn btn-ghost btn-sm" data-nav="/admin/settings">' + esc(t('admin.settings.title')) + ' →</a></div>';
     const latest = res.latest || [];
-    $('#latest-panel').innerHTML = '<h2>' + esc(t('admin.latestArticles')) + '</h2>' + (latest.length
+    $('#latest-body').innerHTML = (latest.length
       ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>' + esc(t('admin.articlesTable.title')) + '</th><th>' + esc(t('admin.articlesTable.category')) + '</th><th>' + esc(t('admin.articlesTable.status')) + '</th><th>' + esc(t('admin.articlesTable.updated')) + '</th><th></th></tr></thead><tbody>' +
         latest.map((a) => '<tr><td class="td-title">' + esc(a.title) + '</td><td>' + esc(categoryName(a.category)) + '</td><td>' + statusChip(a.status === 'published' ? 'published' : 'draft').replace('status-published', 'status-published').replace('status-draft', 'status-draft') + '</td><td style="white-space:nowrap">' + esc(fmtDate(a.updated_at || a.published_at, true)) + '</td><td><a class="btn btn-ghost btn-sm" data-nav="/admin/articles/' + a.id + '/edit">' + esc(t('common.edit')) + '</a></td></tr>').join('') +
         '</tbody></table></div>'
       : '<div style="padding:20px 0">' + esc(t('admin.articlesTable.empty')) + '</div>');
   } catch (err) {
-    $('#stats-grid').innerHTML = errorBox(err);
-    $('#auto-panel').innerHTML = ''; $('#latest-panel').innerHTML = '';
+    $('#stats-grid').innerHTML = '<div class="admin-error">' + errorBox(err) + '</div>';
+    $('#auto-body').innerHTML = ''; $('#latest-body').innerHTML = '';
   }
 }
 
 async function renderAdminArticles(app) {
   setDocMeta(t('admin.articles') + ' | INFOLD', '', '', '/admin/articles');
   state.adminList = { status: 'all', q: '' };
-  app.innerHTML = adminShell('/admin/articles', `
-    <div class="admin-head">
-      <h1>${esc(t('admin.articles'))}</h1>
-      <span class="spacer"></span>
-      <a class="btn btn-primary" data-nav="/admin/articles/new">＋ ${esc(t('admin.newArticle'))}</a>
-    </div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-      <div class="filter-pills" id="status-tabs" style="margin-top:0">
-        <button class="filter-pill active" data-action="status-tab" data-status="all">${esc(t('articles.filterAll'))}</button>
-        <button class="filter-pill" data-action="status-tab" data-status="draft">${esc(t('admin.status.draft'))}</button>
-        <button class="filter-pill" data-action="status-tab" data-status="published">${esc(t('admin.status.published'))}</button>
-      </div>
-      <input class="input" id="admin-search" placeholder="${esc(t('admin.articlesTable.search'))}" style="max-width:260px">
-    </div>
-    <div id="admin-articles-list"><div class="skeleton sk-line w90"></div></div>
-  `);
+  app.innerHTML = adminShell('/admin/articles', [
+    adminHead({
+      kicker: 'ADMIN / ARTICLES',
+      title: t('admin.articles'),
+      actions: '<a class="btn btn-primary" data-nav="/admin/articles/new">' + ADMIN_ICONS.plus + ' ' + esc(t('admin.newArticle')) + '</a>',
+    }),
+    '<div class="admin-toolbar">',
+      '<div class="filter-pills" id="status-tabs">',
+        '<button class="filter-pill active" data-action="status-tab" data-status="all">' + esc(t('articles.filterAll')) + '</button>',
+        '<button class="filter-pill" data-action="status-tab" data-status="draft">' + esc(t('admin.status.draft')) + '</button>',
+        '<button class="filter-pill" data-action="status-tab" data-status="published">' + esc(t('admin.status.published')) + '</button>',
+      '</div>',
+      '<input class="input admin-search" id="admin-search" placeholder="' + esc(t('admin.articlesTable.search')) + '">',
+    '</div>',
+    '<div id="admin-articles-list"><div class="skeleton sk-line w90"></div></div>',
+  ].join(''));
   const search = $('#admin-search');
   search.addEventListener('input', debounce(() => { state.adminList.q = search.value.trim(); loadAdminArticles(); }, 350));
   await loadAdminArticles();
@@ -5243,7 +5414,7 @@ async function loadAdminArticles() {
         <td style="white-space:nowrap">${esc(fmtDate(a.updated_at || a.published_at, true))}</td>
         <td><div class="row-actions">
           <a class="btn btn-ghost btn-sm" data-nav="/admin/articles/${a.id}/edit">${esc(t('common.edit'))}</a>
-          <button class="btn btn-danger btn-sm" data-action="delete-article" data-id="${a.id}" data-title="${esc(a.title)}">${esc(t('common.delete'))}</button>
+          <button class="btn btn-ghost btn-sm btn-quiet-danger" data-action="delete-article" data-id="${a.id}" data-title="${esc(a.title)}">${esc(t('common.delete'))}</button>
         </div></td>
       </tr>`).join('') + '</tbody></table></div>';
   } catch (err) {
@@ -5269,11 +5440,11 @@ async function renderAdminArticleForm(app, id) {
   const status = article ? article.status : 'draft';
   const featured = article ? !!article.featured : false;
   app.innerHTML = adminShell('/admin/articles', `
-    <div class="admin-head">
-      <h1>${esc(article ? t('admin.articleForm.editTitle') : t('admin.articleForm.newTitle'))}</h1>
-      <span class="spacer"></span>
-      <a class="btn btn-ghost btn-sm" data-nav="/admin/articles">← ${esc(t('common.back'))}</a>
-    </div>
+    ${adminHead({
+      kicker: 'ADMIN / ARTICLES',
+      title: article ? t('admin.articleForm.editTitle') : t('admin.articleForm.newTitle'),
+      actions: '<a class="btn btn-ghost btn-sm" data-nav="/admin/articles">← ' + esc(t('common.back')) + '</a>',
+    })}
     <form id="article-form" class="form-card" novalidate>
       <div class="form-grid">
         <div class="form-main">
@@ -5412,9 +5583,9 @@ async function renderAdminCategories(app) {
   setDocMeta(t('admin.categories') + ' | INFOLD', '', '', '/admin/categories');
   state.catAdmin = { editing: null, editingValues: {} };
   app.innerHTML = adminShell('/admin/categories', `
-    <div class="admin-head"><h1>${esc(t('admin.categories'))}</h1></div>
+    ${adminHead({ kicker: 'ADMIN / TAXONOMY', title: t('admin.categories') })}
     <div class="panel">
-      <h2>${esc(t('admin.categories.add'))}</h2>
+      <div class="panel-head"><h2>${esc(t('admin.categories.add'))}</h2></div>
       <form id="cat-add-form" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px" class="cat-form-grid">
         <input class="input" name="name" placeholder="${esc(t('admin.categories.name'))}" required>
         <input class="input" name="nameEn" placeholder="${esc(t('admin.categories.nameEn'))}">
@@ -5469,7 +5640,7 @@ async function refreshCategoriesForAdmin() {
         }
         return '<tr><td>' + esc(c.name) + '</td><td>' + esc(c.name_en || '') + '</td><td><code>' + esc(c.slug) + '</code></td><td>' + c.article_count + '</td>' +
           '<td><div class="row-actions"><button class="btn btn-ghost btn-sm" data-action="cat-edit" data-id="' + c.id + '">' + esc(t('common.edit')) + '</button>' +
-          '<button class="btn btn-danger btn-sm" data-action="cat-delete" data-id="' + c.id + '">' + esc(t('common.delete')) + '</button></div></td></tr>';
+          '<button class="btn btn-ghost btn-sm btn-quiet-danger" data-action="cat-delete" data-id="' + c.id + '">' + esc(t('common.delete')) + '</button></div></td></tr>';
       }).join('') + '</tbody></table></div>';
     $$('.cat-edit-form').forEach((form) => {
       form.addEventListener('submit', async (e) => {
@@ -5520,12 +5691,12 @@ async function renderAdminAI(app) {
   if (!user) return;
   setDocMeta(t('admin.aiTitle') + ' | INFOLD', t('admin.aiDesc'), '', '/admin/ai');
   app.innerHTML = adminShell('/admin/ai', [
-    '<div class="admin-head">',
-      '<h1>' + esc(t('admin.aiTitle')) + '</h1>',
-      '<span class="spacer"></span>',
-      '<button class="btn btn-ghost btn-sm" id="ai-refresh-news">⟳ ' + esc(t('admin.aiRefresh')) + '</button>',
-    '</div>',
-    '<p class="ai-note" style="margin:0 0 18px">' + esc(t('admin.aiDesc')) + '</p>',
+    adminHead({
+      kicker: 'ADMIN / AI STUDIO',
+      title: t('admin.aiTitle'),
+      sub: t('admin.aiDesc'),
+      actions: '<button class="btn btn-ghost btn-sm" id="ai-refresh-news">' + ADMIN_ICONS.refresh + ' ' + esc(t('admin.aiRefresh')) + '</button>',
+    }),
     '<div class="stat-grid" id="ai-stats"></div>',
     '<div class="panel">',
       '<h2>' + esc(t('admin.aiStatus')) + '</h2>',
@@ -5582,8 +5753,8 @@ async function renderAdminAI(app) {
     ];
     $('#ai-stats').innerHTML = cards.map((pair) => {
       const value = String(pair[1]);
-      const size = value.length > 14 ? '13px' : '26px';
-      return '<div class="stat-card"><div class="stat-num" style="font-size:' + size + '">' + esc(value) + '</div><div class="stat-label">' + esc(pair[0]) + '</div></div>';
+      const isText = /[a-z]/i.test(value);
+      return '<div class="stat-card"><div class="stat-num' + (isText ? ' stat-text' : '') + '">' + esc(value) + '</div><div class="stat-label">' + esc(pair[0]) + '</div></div>';
     }).join('');
   };
 
@@ -5786,9 +5957,8 @@ async function renderAdminSettings(app) {
   if (!user) return;
   setDocMeta(t('admin.settings') + ' | INFOLD', '', '', '/admin/settings');
   app.innerHTML = adminShell('/admin/settings', `
-    <div class="admin-head"><h1>${esc(t('admin.settings.title'))}</h1></div>
+    ${adminHead({ kicker: 'ADMIN / AUTOMATION', title: t('admin.settings.title'), sub: t('admin.settings.desc') })}
     <div class="panel">
-      <p style="margin:0 0 6px;color:var(--muted);font-size:13.5px">${esc(t('admin.settings.desc'))}</p>
       <div class="automation-banner">
         <label class="switch-row" style="margin:0">
           <input type="checkbox" id="auto-toggle">
@@ -5800,7 +5970,7 @@ async function renderAdminSettings(app) {
       </div>
       <div class="info-list" id="info-list"></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px">
-        <button class="btn btn-primary" id="run-now-btn">▶ ${esc(t('admin.settings.runNow'))}</button>
+        <button class="btn btn-primary" id="run-now-btn">${ADMIN_ICONS.play} ${esc(t('admin.settings.runNow'))}</button>
         <span class="hint" id="run-now-hint"></span>
       </div>
       <p class="hint" style="margin-top:16px">${esc(t('admin.settings.note'))}</p>
@@ -5855,7 +6025,7 @@ async function renderAdminSettings(app) {
   });
   $('#run-now-btn').addEventListener('click', async () => {
     const btn = $('#run-now-btn');
-    btn.disabled = true; btn.innerHTML = '⏳ ' + esc(t('admin.settings.runningNow'));
+    btn.disabled = true; btn.innerHTML = '<span class="spin"></span>' + esc(t('admin.settings.runningNow'));
     try {
       const res = await api.post('/api/admin/automation/run');
       if (res.ok) toast(t('automation.runSuccess'), 'success');
@@ -5865,7 +6035,7 @@ async function renderAdminSettings(app) {
     } catch (err) {
       toast(err.isNetwork ? t('toast.network') : mapAutoCode((err.data && err.data.code) || 'failed'), 'error');
     } finally {
-      btn.disabled = false; btn.innerHTML = '▶ ' + esc(t('admin.settings.runNow'));
+      btn.disabled = false; btn.innerHTML = ADMIN_ICONS.play + ' ' + esc(t('admin.settings.runNow'));
     }
   });
 }

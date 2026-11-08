@@ -120,9 +120,7 @@ export default {
           // index.html contains the whole UI/CSS — never let browsers or the
           // edge cache serve a stale copy, or phones show an outdated design.
           if ((assetResp.headers.get('content-type') || '').includes('text/html')) {
-            const headers = new Headers(assetResp.headers);
-            headers.set('Cache-Control', 'no-cache, must-revalidate');
-            return new Response(assetResp.body, { status: 200, headers });
+            return htmlResponse(assetResp, env, url, path);
           }
           return assetResp;
         }
@@ -131,9 +129,7 @@ export default {
         // /index.html -> / with 307, which would defeat the SPA fallback.
         const indexUrl = new URL('/', url);
         const fallback = await env.ASSETS.fetch(new Request(indexUrl.toString(), request));
-        const fbHeaders = new Headers(fallback.headers);
-        fbHeaders.set('Cache-Control', 'no-cache, must-revalidate');
-        return new Response(fallback.body, { status: fallback.status, headers: fbHeaders });
+        return htmlResponse(fallback, env, url, path);
       }
       return new Response('Not found', { status: 404 });
     } catch (err) {
@@ -793,4 +789,78 @@ async function adminDeleteCategory(env, path) {
   const res = await env.DB.prepare('DELETE FROM categories WHERE id=?').bind(id).run();
   if (res.meta.changes === 0) return json({ error: 'not_found' }, 404);
   return json({ ok: true });
+}
+
+// ============================================================
+// OGP (link cards)
+// ------------------------------------------------------------
+// トップページは index.html の静的 meta をそのまま返し、記事ページだけは
+// D1 の記事情報で差し替える（クローラーは JS を実行しないため）。
+// canonical / og:url は本番ドメイン (infold.amula.me) の絶対URLで出力する。
+// ============================================================
+const OG_ORIGIN = 'https://infold.amula.me';
+const OG_IMAGE = OG_ORIGIN + '/ogp.png';
+
+function escAttr(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** <head> 内の meta を置き換える（無ければ </head> 直前に追加） */
+function setMetaTag(html, attr, key, content) {
+  const tag = '<meta ' + attr + '="' + key + '" content="' + escAttr(content) + '">';
+  const re = new RegExp('<meta ' + attr + '="' + key + '" content="[^"]*">');
+  if (re.test(html)) return html.replace(re, tag);
+  return html.replace('</head>', tag + '\n</head>');
+}
+
+async function htmlResponse(assetResp, env, url, path) {
+  const headers = new Headers(assetResp.headers);
+  headers.set('Cache-Control', 'no-cache, must-revalidate');
+  const m = /^\/article\/(\d+)\/?$/.exec(path || '');
+  if (!m || !env.DB) return new Response(assetResp.body, { status: assetResp.status, headers });
+
+  let article = null;
+  try {
+    article = await env.DB.prepare(
+      "SELECT title, description, thumbnail FROM articles WHERE id = ? AND status = 'published'"
+    ).bind(Number(m[1])).first();
+  } catch (err) {
+    article = null;
+  }
+  if (!article || !article.title) {
+    return new Response(assetResp.body, { status: assetResp.status, headers });
+  }
+
+  const canonical = OG_ORIGIN + '/article/' + m[1];
+  const title = article.title + ' | INFOLD';
+  const desc = String(article.description || '').trim() || 'INFOLD | Technology, Clearly.';
+  const ownImage = /^https?:\/\//i.test(String(article.thumbnail || ''));
+  const image = ownImage ? article.thumbnail : OG_IMAGE;
+
+  let html = await assetResp.text();
+  html = setMetaTag(html, 'property', 'og:type', 'article');
+  html = setMetaTag(html, 'property', 'og:title', title);
+  html = setMetaTag(html, 'property', 'og:description', desc);
+  html = setMetaTag(html, 'property', 'og:url', canonical);
+  html = setMetaTag(html, 'property', 'og:image', image);
+  // 1200x630 は共通画像のサイズ。記事画像では誤ったヒントになるので外す
+  if (ownImage) {
+    html = html
+      .replace('\n<meta property="og:image:width" content="1200">', '')
+      .replace('\n<meta property="og:image:height" content="630">', '');
+  }
+  html = setMetaTag(html, 'property', 'og:image:alt', article.title);
+  html = setMetaTag(html, 'name', 'twitter:image', image);
+  html = setMetaTag(html, 'name', 'twitter:title', title);
+  html = setMetaTag(html, 'name', 'twitter:description', desc);
+  html = setMetaTag(html, 'name', 'description', desc);
+  html = html.replace('<link rel="canonical" href="/">', '<link rel="canonical" href="' + canonical + '">');
+  html = html.replace('<title>INFOLD | Technology, Clearly.</title>', '<title>' + escAttr(title) + '</title>');
+  headers.delete('Content-Length');
+  headers.set('Content-Type', 'text/html; charset=utf-8');
+  return new Response(html, { status: assetResp.status, headers });
 }
