@@ -2457,6 +2457,15 @@ section { margin: 0; }
 body { font-size: var(--fs-body); line-height: 1.75; }
 .container { max-width: var(--maxw); padding: 0 var(--gutter); }
 
+/* ---------- 4.0b 左右の端を一本のラインに揃える ---------- */
+/* ヒーローだけ画面端まで伸びていて、セクションの左端とズレていたのを解消 */
+.home-hero > .container { max-width: var(--maxw); padding: 0 var(--gutter); }
+.hero-main { border: 1px solid var(--border); }
+.hero-main-body { padding: clamp(20px, 2.6vw, 40px); }
+.hero-side-head { padding: var(--sp-4) var(--sp-5); }
+.hero-side-item { padding: var(--sp-4) var(--sp-5); }
+.footer-inner, .footer-top, .footer-bottom { padding-left: 0; padding-right: 0; }
+
 /* ---------- 1. 文字スケール ---------- */
 .hero-main-body h1 { font-size: var(--fs-display); line-height: 1.02; letter-spacing: -.035em; }
 .article-head h1, .page-title, .login-card h1 { font-size: var(--fs-h1); line-height: 1.1; letter-spacing: -.03em; }
@@ -2535,6 +2544,11 @@ body { font-size: var(--fs-body); line-height: 1.75; }
 @media (min-width: 769px) { .hero-main-card:has(img.img-fail) { min-height: 440px; } }
 .article-hero:has(img.img-fail) { aspect-ratio: auto; height: 132px; max-height: 132px; }
 .article-hero:has(img.img-fail)::after { font-size: 11px; }
+
+/* ---------- 4.0c ヒーロー見出しの折り返しと余白 ---------- */
+.home-hero { padding-top: var(--sp-6); }
+.hero-main-body h1 { font-size: clamp(30px, 3.3vw, 50px); text-wrap: balance; }
+@media (max-width: 1080px) { .home-hero { padding-top: var(--sp-5); } .hero-main-body h1 { font-size: clamp(26px, 4.4vw, 38px); } }
 .article-hero > img { background: var(--bg-soft); }
 
 /* ---------- 7. ボタン / チップ / 入力（高さを固定） ---------- */
