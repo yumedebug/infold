@@ -231,7 +231,7 @@ async function handleAdmin(request, env, url, path, method) {
   }
   if (method === 'POST' && path === '/api/admin/ai/test') {
     const body = await readBodyJson(request);
-    return json(await testOpenRouter(env, body?.model));
+    return json(await testOpenRouter(env, body?.model, body?.apiKey));
   }
   if (method === 'GET' && path === '/api/admin/ai/news') {
     if (url.searchParams.get('refresh') === '1') {

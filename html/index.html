@@ -2253,6 +2253,7 @@ section { margin: 0; }
 /* ---------- AI studio ---------- */
 .ai-config-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .ai-config-grid .field { margin: 0; }
+.ai-config-grid .field-wide { grid-column: 1 / -1; }
 .ai-config-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 .ai-test-result { padding: 8px 10px; border: 1px solid var(--border); background: var(--bg-soft); color: var(--muted); font-size: 11.5px; }
 .ai-test-result.ok { border-color: color-mix(in srgb, var(--primary) 50%, var(--border)); color: var(--primary); }
@@ -2898,6 +2899,24 @@ html[data-admin] .aichat-fab { display: none !important; }
   .panel > :not(.panel-head):not(.table-wrap) { padding-left: var(--sp-4); padding-right: var(--sp-4); }
   .panel-head { padding: 14px var(--sp-4); }
 }
+
+/* ============================================================
+   5.1 左右の端と余白の最終調整
+   ============================================================ */
+/* スクロールバーの有無で本文の左右端が 5px ずれないよう、常にガターを確保 */
+html { scrollbar-gutter: stable; }
+
+/* ヒーロー上余白が二重にかかっていた（64px → 32px） */
+.home-hero > .container { padding-top: 0; }
+
+/* ヒーロー下の罫線だけが画面端まで伸びて本文の端と揃っていなかった */
+.home-hero { border-bottom: 0; }
+
+/* 記事ページ: 関連記事だけ内側に縮んでいたのを本文と同じ端に */
+.related { max-width: none; margin-left: 0; margin-right: 0; }
+
+/* 記事ページ: ポイント案内が中央寄せで本文・右レールと揃っていなかった */
+.points-note { margin-left: 0; margin-right: auto; }
 </style>
 </head>
 <body>
@@ -3173,8 +3192,14 @@ const I18N = {
     'admin.aiNoNews': 'ニュースがありません。「ニュースを取得」を押してください。',
     'admin.aiNoHistory': '生成履歴はありません。',
     'admin.aiSelect': 'ニュースを選択してください。',
-    'admin.aiKeyNote': 'APIキーはCloudflare Workers Secretsの OPENROUTER_API_KEY に保存されます。画面には表示されません。',
-    'admin.aiFreeOnly': '無料モデル（:free）のみ使用できます。',
+    'admin.aiKeyNote': 'APIキーはこの画面から登録できます（Cloudflare D1に保存され、再表示はされません）。保存したキーが優先され、未設定のときは Cloudflare Secrets の OPENROUTER_API_KEY が使われます。',
+    'admin.aiApiKey': 'APIキー',
+    'admin.aiApiKeyPlaceholder': 'sk-or-v1-... を貼り付け',
+    'admin.aiApiKeySaved': '•••••••• 設定済み（変更する場合のみ入力）',
+    'admin.aiApiKeyStateSet': 'APIキーは設定済みです。変更するときだけ入力して保存してください。',
+    'admin.aiApiKeyStateEnv': '現在は Cloudflare Secrets の OPENROUTER_API_KEY を使用中です。保存するとこちらのキーが優先されます。',
+    'admin.aiApiKeyStateNone': 'APIキーが未設定です。上の欄に貼り付けて保存してください。',
+    'admin.aiFreeOnly': '無料モデル（:free / openrouter/free）のみ使用できます。',
     'admin.aiGenerating': '生成中…',
     'admin.aiGenerated': '記事を生成しました',
     'admin.aiNeedsReview': '情報不足のため要確認になりました。',
@@ -3186,7 +3211,7 @@ const I18N = {
     'admin.aiModelSourceSetting': '管理画面の設定を使用中',
     'admin.aiRateLimited': '無料枠の上限に達しました。時間をおいて再試行してください。',
     'admin.aiDailyReached': '1日の生成上限に達しました。',
-    'admin.aiNotConfiguredMsg': 'OPENROUTER_API_KEY が未設定です。Cloudflare Secretsに登録してください。',
+    'admin.aiNotConfiguredMsg': 'APIキーが未設定です。この画面で登録してください。',
     'admin.aiTestConnection': 'OpenRouter接続テスト',
     'admin.aiConfirmPublish': 'この記事を公開しますか？',
     'admin.aiGeneratedAt': '生成日時',
@@ -3502,8 +3527,14 @@ const I18N = {
     'admin.aiNoNews': 'No news items yet. Press “Fetch news”.',
     'admin.aiNoHistory': 'No generation history yet.',
     'admin.aiSelect': 'Select a news item.',
-    'admin.aiKeyNote': 'The API key is stored in Cloudflare Workers Secrets as OPENROUTER_API_KEY. It is never shown in the UI.',
-    'admin.aiFreeOnly': 'Only :free models are allowed.',
+    'admin.aiKeyNote': 'You can set the API key right here. It is stored in Cloudflare D1 and never shown again. A saved key wins; when none is saved the OPENROUTER_API_KEY Workers Secret is used.',
+    'admin.aiApiKey': 'API key',
+    'admin.aiApiKeyPlaceholder': 'Paste sk-or-v1-...',
+    'admin.aiApiKeySaved': '•••••••• saved (enter a value only to replace it)',
+    'admin.aiApiKeyStateSet': 'An API key is saved. Enter a new value only when you want to replace it.',
+    'admin.aiApiKeyStateEnv': 'Currently using the OPENROUTER_API_KEY Workers Secret. Saving a key here overrides it.',
+    'admin.aiApiKeyStateNone': 'No API key yet. Paste one above and save.',
+    'admin.aiFreeOnly': 'Only free models (:free or openrouter/free) are allowed.',
     'admin.aiGenerating': 'Generating…',
     'admin.aiGenerated': 'Article generated',
     'admin.aiNeedsReview': 'Marked for review because the source information was insufficient.',
@@ -3515,7 +3546,7 @@ const I18N = {
     'admin.aiModelSourceSetting': 'Using the value saved in the admin settings',
     'admin.aiRateLimited': 'The free-tier limit was reached. Try again later.',
     'admin.aiDailyReached': 'The daily generation limit was reached.',
-    'admin.aiNotConfiguredMsg': 'OPENROUTER_API_KEY is not configured. Add it to Cloudflare Secrets.',
+    'admin.aiNotConfiguredMsg': 'No API key configured yet. Add it on this screen.',
     'admin.aiTestConnection': 'Test OpenRouter connection',
     'admin.aiConfirmPublish': 'Publish this article?',
     'admin.aiGeneratedAt': 'Generated at',
@@ -5701,8 +5732,9 @@ async function renderAdminAI(app) {
     '<div class="panel">',
       '<h2>' + esc(t('admin.aiStatus')) + '</h2>',
       '<div class="ai-config-grid">',
+        '<label class="field field-wide">' + esc(t('admin.aiApiKey')) + '<input class="input" id="ai-api-key" type="password" autocomplete="off" spellcheck="false" placeholder="' + esc(t('admin.aiApiKeyPlaceholder')) + '"></label>',
         '<label class="field">' + esc(t('admin.aiProvider')) + '<input class="input" value="OpenRouter" disabled></label>',
-        '<label class="field">' + esc(t('admin.aiModel')) + '<input class="input" id="ai-model" spellcheck="false" placeholder="dots-studio/dots-3-note-preview:free"></label>',
+        '<label class="field">' + esc(t('admin.aiModel')) + '<input class="input" id="ai-model" spellcheck="false" placeholder="openrouter/free"></label>',
         '<label class="field">' + esc(t('admin.aiDailyLimit')) + '<input class="input" id="ai-limit" type="number" min="1" max="100"></label>',
         '<div class="field"><span>' + esc(t('admin.aiFreeOnly')) + '</span>',
           '<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">',
@@ -5717,7 +5749,8 @@ async function renderAdminAI(app) {
         '<button class="btn btn-ghost btn-sm" id="ai-test">' + esc(t('admin.aiTest')) + '</button>',
         '<span class="ai-test-result" id="ai-test-result" style="display:none"></span>',
       '</div>',
-      '<p class="ai-note" style="margin-top:14px">' + esc(t('admin.aiKeyNote')) + '</p>',
+      '<p class="ai-note" id="ai-key-state" style="margin-top:14px"></p>',
+      '<p class="ai-note">' + esc(t('admin.aiKeyNote')) + '</p>',
       '<p class="ai-note" id="ai-model-note"></p>',
     '</div>',
     '<div class="panel">',
@@ -5768,6 +5801,19 @@ async function renderAdminAI(app) {
     $('#ai-auto-publish').checked = !!s.autoPublish;
     const note = $('#ai-model-note');
     if (note) note.textContent = s.modelSource === 'env' ? t('admin.aiModelSourceEnv') : t('admin.aiModelSourceSetting');
+    const keyEl = $('#ai-api-key');
+    if (keyEl) {
+      keyEl.value = '';
+      keyEl.placeholder = s.apiKeySource === 'setting'
+        ? t('admin.aiApiKeySaved')
+        : t('admin.aiApiKeyPlaceholder');
+    }
+    const keyState = $('#ai-key-state');
+    if (keyState) {
+      keyState.textContent = s.apiKeySource === 'env'
+        ? t('admin.aiApiKeyStateEnv')
+        : (s.apiKeySet ? t('admin.aiApiKeyStateSet') : t('admin.aiApiKeyStateNone'));
+    }
     if (!s.configured) {
       const res = $('#ai-test-result');
       if (res) { res.style.display = ''; res.className = 'ai-test-result err'; res.textContent = t('admin.aiNotConfiguredMsg'); }
@@ -5883,13 +5929,17 @@ async function renderAdminAI(app) {
     const btn = $('#ai-save');
     btn.disabled = true;
     try {
-      status = await api.post('/api/admin/ai/settings', {
+      const keyEl = $('#ai-api-key');
+      const apiKey = keyEl ? keyEl.value.trim() : '';
+      const payload = {
         model: $('#ai-model').value.trim(),
         dailyLimit: Number($('#ai-limit').value) || 1,
         enabled: $('#ai-enabled').checked,
         autoGenerate: $('#ai-auto-generate').checked,
         autoPublish: $('#ai-auto-publish').checked,
-      });
+      };
+      if (apiKey) payload.apiKey = apiKey;
+      status = await api.post('/api/admin/ai/settings', payload);
       drawStatus();
       fillForm();
       toast(t('toast.saved'), 'success');
@@ -5902,12 +5952,16 @@ async function renderAdminAI(app) {
     const btn = $('#ai-test');
     const box = $('#ai-test-result');
     const model = $('#ai-model').value.trim();
+    const typedKey = $('#ai-api-key') ? $('#ai-api-key').value.trim() : '';
     btn.disabled = true;
     box.style.display = '';
     box.className = 'ai-test-result';
     box.textContent = t('common.loading');
     try {
-      const res = await api.post('/api/admin/ai/test', model ? { model: model } : {});
+      const testBody = {};
+      if (model) testBody.model = model;
+      if (typedKey) testBody.apiKey = typedKey;
+      const res = await api.post('/api/admin/ai/test', testBody);
       if (res && res.ok) {
         box.className = 'ai-test-result ok';
         box.textContent = t('admin.aiTestOk') + ' — ' + (res.model || '') + (res.warning ? ' (' + t('admin.aiRateLimited') + ')' : '');

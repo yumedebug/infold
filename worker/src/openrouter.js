@@ -6,11 +6,13 @@
 //       -> D1 draft (manual) or published (scheduled)
 //
 // IMPORTANT:
-//   - OPENROUTER_API_KEY is a Cloudflare Workers Secret. It is never
-//     returned by any API response or written to logs.
-//   - Only models whose OpenRouter id ends in ":free" and whose model
-//     metadata reports 0 price are accepted. There is no automatic
-//     fallback to a paid model.
+//   - The API key is set from the admin UI and stored in the D1 settings
+//     table. The OPENROUTER_API_KEY Workers Secret is the fallback when no
+//     key is saved. The value is never returned by any API response or
+//     written to logs.
+//   - Only free models are accepted: ids ending in ":free", or the
+//     "openrouter/free" router, and their metadata must report 0 price.
+//     There is no automatic fallback to a paid model.
 // ============================================================
 
 import { clampInt, jstDateStr, nowISO } from './util.js';
@@ -18,7 +20,9 @@ import { notifyArticlePublished } from './push.js';
 
 const OPENROUTER_CHAT_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
-const DEFAULT_MODEL = 'dots-studio/dots-3-note-preview:free';
+const DEFAULT_MODEL = 'openrouter/free';
+const API_KEY_SETTING = 'openrouter_api_key';
+const MIN_API_KEY_LENGTH = 20;
 const DEFAULT_DAILY_LIMIT = 10;
 const MAX_SOURCE_TEXT = 14000;
 
@@ -49,8 +53,22 @@ export class OpenRouterError extends Error {
   }
 }
 
-export function isOpenRouterConfigured(env) {
-  return !!String(env.OPENROUTER_API_KEY || '').trim();
+/**
+ * The key saved from the admin UI (D1) wins, so the key can be changed
+ * without redeploying. The OPENROUTER_API_KEY Workers Secret is the
+ * fallback for deployments that only use secrets.
+ */
+async function resolveApiKey(env) {
+  let stored = '';
+  try { stored = String((await getSetting(env, API_KEY_SETTING, '')) || '').trim(); } catch (_) { stored = ''; }
+  if (stored) return { key: stored, source: 'setting' };
+  const fromEnv = String(env.OPENROUTER_API_KEY || '').trim();
+  if (fromEnv) return { key: fromEnv, source: 'env' };
+  return { key: '', source: 'none' };
+}
+
+export async function isOpenRouterConfigured(env) {
+  return !!(await resolveApiKey(env)).key;
 }
 
 export function getOpenRouterModel(env, settingModel = '') {
@@ -58,7 +76,8 @@ export function getOpenRouterModel(env, settingModel = '') {
 }
 
 export function isFreeModelId(model) {
-  return /:free$/i.test(String(model || '').trim());
+  const id = String(model || '').trim();
+  return /:free$/i.test(id) || id === 'openrouter/free';
 }
 
 function makeError(code, message, status = 502, extra = {}) {
@@ -83,12 +102,13 @@ function parseBool(value, fallback = true) {
 }
 
 async function getConfig(env) {
-  const [enabledRaw, autoGenerateRaw, autoPublishRaw, limitRaw, settingModel] = await Promise.all([
+  const [enabledRaw, autoGenerateRaw, autoPublishRaw, limitRaw, settingModel, apiKey] = await Promise.all([
     getSetting(env, 'openrouter_enabled', '1'),
     getSetting(env, 'openrouter_auto_generate', '1'),
     getSetting(env, 'openrouter_auto_publish', '1'),
     getSetting(env, 'openrouter_daily_limit', String(DEFAULT_DAILY_LIMIT)),
     getSetting(env, 'openrouter_model', ''),
+    resolveApiKey(env),
   ]);
   const model = getOpenRouterModel(env, settingModel);
   return {
@@ -98,7 +118,10 @@ async function getConfig(env) {
     dailyLimit: clampInt(limitRaw, 1, 100, DEFAULT_DAILY_LIMIT),
     model,
     modelSource: env.OPENROUTER_MODEL ? 'env' : (settingModel ? 'setting' : 'default'),
-    configured: isOpenRouterConfigured(env),
+    freeModel: isFreeModelId(model),
+    apiKey: apiKey.key,
+    apiKeySource: apiKey.source,
+    configured: !!apiKey.key,
   };
 }
 
@@ -106,20 +129,21 @@ async function getConfig(env) {
 // OpenRouter model verification (free-only guard)
 // ------------------------------------------------------------
 
-export async function checkOpenRouterModel(env, model) {
-  if (!isOpenRouterConfigured(env)) {
-    return { ok: false, error: 'not_configured', message: 'OPENROUTER_API_KEY is not configured' };
+export async function checkOpenRouterModel(env, model, apiKey = '') {
+  const key = String(apiKey || '') || (await resolveApiKey(env)).key;
+  if (!key) {
+    return { ok: false, error: 'not_configured', message: 'OpenRouter API key is not configured' };
   }
   const id = String(model || '').trim();
   if (!isFreeModelId(id)) {
-    return { ok: false, error: 'free_model_required', message: `Model must be a :free model: ${id}` };
+    return { ok: false, error: 'free_model_required', message: `Model must be a free model: ${id}` };
   }
 
   let resp;
   try {
     resp = await fetch(OPENROUTER_MODELS_URL, {
       headers: {
-        Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${key}`,
         'HTTP-Referer': 'https://infold.f5.si',
         'X-Title': 'INFOLD',
       },
@@ -128,11 +152,19 @@ export async function checkOpenRouterModel(env, model) {
     return { ok: false, error: 'connection_failed', message: String((err && err.message) || err).slice(0, 300) };
   }
   if (!resp.ok) {
-    return { ok: false, error: 'models_request_failed', message: `HTTP ${resp.status}` };
+    const text = String(await resp.text().catch(() => '')).replace(/\s+/g, ' ').trim();
+    return {
+      ok: false,
+      error: 'models_request_failed',
+      message: `HTTP ${resp.status}${text ? ' ' + text.slice(0, 200) : ''}`,
+    };
   }
   let data;
   try { data = await resp.json(); } catch (_) { data = null; }
-  const found = data && Array.isArray(data.data) ? data.data.find((m) => m && m.id === id) : null;
+  if (!data || !Array.isArray(data.data)) {
+    return { ok: false, error: 'models_request_failed', message: 'Unexpected response from the models endpoint' };
+  }
+  const found = data.data.find((m) => m && m.id === id);
   if (!found) {
     return { ok: false, error: 'model_unavailable', message: `Free model is not currently available: ${id}` };
   }
@@ -198,7 +230,13 @@ export async function getOpenRouterStatus(env) {
     model: config.model,
     modelSource: config.modelSource,
     freeModel: isFreeModelId(config.model),
-    apiKeyLocation: 'Cloudflare Workers Secrets (OPENROUTER_API_KEY)',
+    apiKeySet: config.configured,
+    apiKeySource: config.apiKeySource,
+    apiKeyLocation: config.apiKeySource === 'setting'
+      ? 'Saved from the admin screen (D1)'
+      : config.apiKeySource === 'env'
+        ? 'Cloudflare Workers Secrets (OPENROUTER_API_KEY)'
+        : 'Not configured',
     today: todayCounts,
     articles: articleCounts,
   };
@@ -207,7 +245,16 @@ export async function getOpenRouterStatus(env) {
 export async function updateOpenRouterSettings(env, body) {
   const model = String(body?.model || '').trim();
   if (model && !isFreeModelId(model)) {
-    throw makeError('free_model_required', 'Only OpenRouter :free models can be used', 400);
+    throw makeError('free_model_required', 'Only free OpenRouter models can be used', 400);
+  }
+  const apiKey = String(body?.apiKey || '').trim();
+  if (apiKey) {
+    if (apiKey.length < MIN_API_KEY_LENGTH) {
+      throw makeError('invalid_api_key', 'That API key looks too short', 400);
+    }
+    await setSetting(env, API_KEY_SETTING, apiKey);
+  } else if (body?.clearApiKey === true) {
+    await env.DB.prepare('DELETE FROM settings WHERE key = ?').bind(API_KEY_SETTING).run();
   }
   if (body?.enabled !== undefined) {
     await setSetting(env, 'openrouter_enabled', body.enabled ? '1' : '0');
@@ -389,6 +436,21 @@ export async function listNewsItems(env, limit = 50) {
      ORDER BY COALESCE(n.published_at, n.created_at) DESC, n.id DESC
      LIMIT ?`
   ).bind(clampInt(limit, 1, 100, 50)).all();
+  return rows.results || [];
+}
+
+/** Unused Google News items, newest first (scheduled auto-publish only). */
+async function listGoogleNewsCandidates(env, limit = 6) {
+  const rows = await env.DB.prepare(
+    `SELECT n.* FROM ai_news_items n
+     WHERE n.source_url LIKE 'https://news.google.com/%'
+       AND NOT EXISTS (
+         SELECT 1 FROM ai_generations g
+         WHERE g.news_item_id = n.id AND g.status IN ('draft', 'published')
+       )
+     ORDER BY COALESCE(n.published_at, n.created_at) DESC, n.id DESC
+     LIMIT ?`
+  ).bind(clampInt(limit, 1, 100, 6)).all();
   return rows.results || [];
 }
 
@@ -608,7 +670,7 @@ function parseJsonResponse(text) {
   }
 }
 
-async function callOpenRouter(env, model, item, sourceText) {
+async function callOpenRouter(env, model, item, sourceText, apiKey = '') {
   const body = {
     model,
     messages: [
@@ -626,7 +688,7 @@ async function callOpenRouter(env, model, item, sourceText) {
     return fetch(OPENROUTER_CHAT_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://infold.f5.si',
         'X-Title': 'INFOLD',
@@ -727,7 +789,7 @@ async function markNewsStatus(env, newsItemId, status) {
  */
 export async function generateFromNewsItem(env, newsItemId, options = {}) {
   const config = await getConfig(env);
-  if (!config.configured) throw makeError('not_configured', 'OPENROUTER_API_KEY is not configured', 503);
+  if (!config.configured) throw makeError('not_configured', 'OpenRouter API key is not configured', 503);
   if (!config.enabled && !options.ignoreEnabled) {
     throw makeError('disabled', 'OpenRouter article generation is disabled', 409);
   }
@@ -760,7 +822,7 @@ export async function generateFromNewsItem(env, newsItemId, options = {}) {
     }
   }
 
-  const modelCheck = await checkOpenRouterModel(env, config.model);
+  const modelCheck = await checkOpenRouterModel(env, config.model, config.apiKey);
   if (!modelCheck.ok) {
     throw makeError(modelCheck.error, modelCheck.message || 'Free model is not available', 503);
   }
@@ -771,7 +833,7 @@ export async function generateFromNewsItem(env, newsItemId, options = {}) {
   }
 
   try {
-    const result = await callOpenRouter(env, config.model, item, sourceText);
+    const result = await callOpenRouter(env, config.model, item, sourceText, config.apiKey);
     const article = validateGeneratedArticle(result.parsed, item);
     const markdown = blocksToMarkdown(article.content);
     const autoPublish = options.autoPublish !== undefined ? !!options.autoPublish : config.autoPublish;
@@ -856,16 +918,14 @@ export async function generateFromNewsItem(env, newsItemId, options = {}) {
 /** Scheduled pipeline: choose one fresh candidate and publish/draft it. */
 export async function generateDailyArticle(env) {
   const config = await getConfig(env);
-  if (!config.configured) throw makeError('not_configured', 'OPENROUTER_API_KEY is not configured', 503);
+  if (!config.configured) throw makeError('not_configured', 'OpenRouter API key is not configured', 503);
   if (!config.enabled) throw makeError('disabled', 'OpenRouter article generation is disabled', 409);
   if (!config.autoGenerate) throw makeError('auto_generate_disabled', 'OpenRouter auto generation is disabled', 409);
 
   await syncNewsItems(env);
-  const items = await listNewsItems(env, 30);
-  const candidates = items.filter((item) => {
-    if (item.generation_status === 'draft' || item.generation_status === 'published') return false;
-    return true;
-  }).slice(0, 6);
+  // Scheduled posts only use Google News feeds; manual generation can still
+  // pick any collected source from the admin screen.
+  const candidates = await listGoogleNewsCandidates(env, 6);
 
   if (!candidates.length) throw makeError('no_candidate', 'No unused news candidate found', 409);
 
@@ -899,20 +959,21 @@ export async function listGenerations(env, limit = 50) {
 }
 
 /** Small connection test. It does not reveal the key. */
-export async function testOpenRouter(env, modelOverride) {
-  if (!isOpenRouterConfigured(env)) {
-    return { ok: false, error: 'not_configured', message: 'OPENROUTER_API_KEY is not configured' };
-  }
+export async function testOpenRouter(env, modelOverride, apiKeyOverride) {
   const config = await getConfig(env);
+  const apiKey = String(apiKeyOverride || '').trim() || config.apiKey;
+  if (!apiKey) {
+    return { ok: false, error: 'not_configured', message: 'OpenRouter API key is not configured' };
+  }
   const model = String(modelOverride || config.model).trim();
-  const check = await checkOpenRouterModel(env, model);
+  const check = await checkOpenRouterModel(env, model, apiKey);
   if (!check.ok) return check;
 
   try {
     const resp = await fetch(OPENROUTER_CHAT_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://infold.f5.si',
         'X-Title': 'INFOLD',
@@ -921,15 +982,29 @@ export async function testOpenRouter(env, modelOverride) {
         model,
         messages: [{ role: 'user', content: 'Return exactly this JSON and nothing else: {"ok":true}' }],
         temperature: 0,
-        max_tokens: 32,
+        // Reasoning models spend completion tokens on thinking first, so a
+        // tiny budget returns an empty message. Keep this generous.
+        max_tokens: 512,
       }),
     });
     if (resp.status === 429) {
       return { ok: true, model: check.model, name: check.name, warning: 'rate_limited' };
     }
+    const raw = await resp.text().catch(() => '');
     if (!resp.ok) {
-      const text = await resp.text().catch(() => '');
-      return { ok: false, error: 'connection_failed', message: `HTTP ${resp.status} ${text.slice(0, 200)}` };
+      return { ok: false, error: 'connection_failed', message: `HTTP ${resp.status} ${raw.replace(/\s+/g, ' ').slice(0, 200)}` };
+    }
+    let data = null;
+    try { data = JSON.parse(raw); } catch (_) { data = null; }
+    const choice = data && Array.isArray(data.choices) ? data.choices[0] : null;
+    const content = choice && choice.message ? choice.message.content : '';
+    if (!content) {
+      const finish = (choice && choice.finish_reason) || 'unknown';
+      return {
+        ok: false,
+        error: 'empty_response',
+        message: `HTTP 200 but the model returned no text (finish_reason: ${finish})`,
+      };
     }
     return { ok: true, model: check.model, name: check.name, free: true };
   } catch (err) {

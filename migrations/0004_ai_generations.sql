@@ -55,10 +55,11 @@ CREATE INDEX IF NOT EXISTS idx_ai_generations_date   ON ai_generations (created_
 CREATE INDEX IF NOT EXISTS idx_ai_generations_status ON ai_generations (status, id);
 
 -- ------------------------------------------------------------
--- OpenRouter settings. The API key itself is NEVER stored here.
+-- OpenRouter settings. The API key is not seeded here: it is saved from the
+-- admin screen into settings.openrouter_api_key when an admin enters one.
 -- ------------------------------------------------------------
 INSERT OR IGNORE INTO settings (key, value) VALUES ('openrouter_enabled', '1');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('openrouter_auto_generate', '1');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('openrouter_auto_publish', '1');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('openrouter_daily_limit', '10');
-INSERT OR IGNORE INTO settings (key, value) VALUES ('openrouter_model', 'dots-studio/dots-3-note-preview:free');
+INSERT OR IGNORE INTO settings (key, value) VALUES ('openrouter_model', 'openrouter/free');

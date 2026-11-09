@@ -154,7 +154,7 @@ async function runPipeline(env, today, attemptCount) {
     // absent, keep the legacy Gemini pipeline for existing deployments.
     // When the key exists, never fall back to Gemini or a paid model:
     // free-model failures are reported to the admin dashboard instead.
-    const result = isOpenRouterConfigured(env)
+    const result = (await isOpenRouterConfigured(env))
       ? await generateDailyArticle(env)
       : { articleId: await generateArticle(env) };
     const articleId = result.articleId;

@@ -82,13 +82,17 @@ wrangler secret put GEMINI_API_KEY
 管理画面の **`/admin/ai`**（AI Article Studio）から、RSS / ITFIS のニュースをもとに
 INFOLD 独自の日本語記事を生成・編集・公開できます。
 
-### 1. Secret 設定（必須）
+### 1. APIキー設定
+
+管理画面の **`/admin/ai`** の「APIキー」欄に貼り付けて保存します（Cloudflare D1 の
+`settings.openrouter_api_key` に保存・再表示なし）。Secret を使う場合はこちらでも構いません。
 
 ```bash
 wrangler secret put OPENROUTER_API_KEY
 # OpenRouter の API キー（sk-or-...）を入力
 ```
 
+画面で保存したキーが優先され、未設定のときだけ Secret が使われます。
 APIキーは Worker からのみ参照され、フロントエンド・APIレスポンス・ログには出力されません。
 
 ### 2. D1 マイグレーション（必須）
@@ -103,21 +107,19 @@ npm run db:migrate:ai:remote  # 本番D1（ローカルは db:migrate:ai:local�
 
 ### 3. モデル
 
-- 既定: `dots-studio/dots-3-note-preview:free`（無料・512K コンテキスト）
-- 比較候補: `nvidia/nemotron-3-ultra:free`
-- **`:free` モデルのみ**使用します。無料モデルが利用できない場合、自動的に有料モデルへ切り替えることはせず、
-  管理画面にエラーを表示して処理を停止します。
+- 既定: `openrouter/free`（無料モデルの自動ルーター）
+- 比較候補: `nvidia/nemotron-3-ultra:free` などの `:free` モデル
+- **無料モデルのみ**使用します（`:free` で終わる ID、または `openrouter/free`）。無料モデルが
+  利用できない場合、自動的に有料モデルへ切り替えることはせず、管理画面にエラーを表示して処理を停止します。
 - モデルIDは管理画面で変更できます。環境変数 `OPENROUTER_MODEL` を設定した場合はそちらが優先されます
   （`wrangler secret put OPENROUTER_MODEL` または `wrangler.jsonc` の `vars`）。
-- `dots-3-note-preview:free` は 2026-12-31 に提供終了予定です。終了前に管理画面または環境変数で
-  別の `:free` モデルへ差し替えてください。
 
 ### 4. 生成の流れ
 
 ```text
 Cron（毎時）/ 手動「ニュースを取得」
   → RSS（Google News / GIZMODO / GIGAZINE）+ ITFIS 記事を ai_news_items へ保存（URL重複は除外）
-  → 管理画面で記事を選択 → 「記事を生成」
+  → 自動投稿は Google ニュース由来の候補のみ（管理画面からの手動生成は全ソース）
   → OpenRouter（:free モデルのみ）
   → JSON スキーマ検証（不正な出力は保存しない）
   → articles へ下書き保存（「生成後すぐ公開」をONにすると公開）
