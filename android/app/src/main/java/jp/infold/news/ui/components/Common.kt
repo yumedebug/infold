@@ -34,7 +34,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.mutableStateOf
@@ -50,15 +49,12 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlurEffect
-import androidx.compose.ui.graphics.ExperimentalGraphicsApi
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -77,6 +73,7 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import jp.infold.news.data.ApiClient
 import jp.infold.news.data.Article
 import jp.infold.news.data.BASE_URL
@@ -756,13 +753,31 @@ fun AccountIconButton(onClick: () -> Unit) {
     }
 }
 
+/**
+ * 画面内容をブラー元として登録するラッパー。
+ * 下部バーはこの内容（スクロール中の記事・画像）と固定背景を
+ * Haze でサンプリングするため、重なった部分が実際にぼやけて透ける。
+ * zIndex を固定背景（0）より大きくして、内側のガラス面が
+ * 自分自身をサンプリングしないようにしている。
+ */
+@Composable
+fun HazeSourceContent(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val haze = LocalInfoldHaze.current
+    Box(
+        modifier = if (haze != null) modifier.hazeSource(haze, zIndex = 1f) else modifier,
+    ) {
+        content()
+    }
+}
+
 // ============================================================
 // フローティング型ナビゲーションバー
 // 画面下部から少し浮いた Liquid Glass カプセル型。
-// 背景コンテンツを別の GraphicsLayer に記録し、Android 12 以降では
-// RenderEffect のブラーをそのレイヤーに適用してからガラス内へ描画する。
-// これにより単なる alpha の低い色ではなく、実際の背後コンテンツが
-// 見える（かつ軽くぼやける）構成になる。
+// 背後の固定背景 + スクロール中の画面内容を Haze で実際にぼかしてから
+// ガラス色を重ねるため、重なった部分が透けて見える。
 // ============================================================
 
 data class FloatingNavItem(
@@ -771,64 +786,14 @@ data class FloatingNavItem(
     val icon: ImageVector,
 )
 
-/**
- * Compose のコンテンツを通常用とブラー用の2つのネイティブ GraphicsLayer に記録する。
- * Android 12 未満では RenderEffect が使えないため、透明ガラスのみへフォールバックする。
- */
-@OptIn(ExperimentalGraphicsApi::class)
-@Composable
-fun BackdropContent(
-    contentLayer: GraphicsLayer,
-    blurLayer: GraphicsLayer,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-
-    SideEffect {
-        @Suppress("NewApi")
-        blurLayer.renderEffect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            BlurEffect(
-                radiusX = 20f,
-                radiusY = 20f,
-                edgeTreatment = TileMode.Clamp,
-            )
-        } else {
-            null
-        }
-    }
-
-    Box(
-        modifier = modifier.drawWithContent {
-            // 2回目の記録は同じ背後コンテンツをブラー用に保持するためのもの。
-            val layerSize = size.toIntSize()
-            contentLayer.record(
-                density = this,
-                layoutDirection = layoutDirection,
-                size = layerSize,
-            ) { this@drawWithContent.drawContent() }
-            blurLayer.record(
-                density = this,
-                layoutDirection = layoutDirection,
-                size = layerSize,
-            ) { this@drawWithContent.drawContent() }
-            drawLayer(contentLayer)
-        },
-    ) {
-        content()
-    }
-}
-
-@OptIn(ExperimentalGraphicsApi::class)
 @Composable
 fun FloatingBottomNavBar(
     items: List<FloatingNavItem>,
     currentRoute: String?,
     onSelect: (String) -> Unit,
-    blurLayer: GraphicsLayer,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalInfoldColors.current
-    val density = LocalDensity.current
     val selectedIndex = items.indexOfFirst { item ->
         if (item.route == "articles") currentRoute?.startsWith("articles") == true
         else currentRoute == item.route
@@ -838,79 +803,64 @@ fun FloatingBottomNavBar(
         animationSpec = tween(durationMillis = 250, easing = LinearEasing),
         label = "glass-indicator",
     )
-
-    // バー自身は不透明な背景を持たず、呼び出し側の背後レイヤーを受け取る。
-    FloatingBottomNavBarSurface(
-        items = items,
-        onSelect = onSelect,
-        colors = colors,
-        density = density,
-        selectedIndex = selectedIndex,
-        indicatorAlpha = indicatorAlpha,
-        blurLayer = blurLayer,
-        modifier = modifier,
-    )
-}
-
-@OptIn(ExperimentalGraphicsApi::class)
-@Composable
-private fun FloatingBottomNavBarSurface(
-    items: List<FloatingNavItem>,
-    onSelect: (String) -> Unit,
-    colors: jp.infold.news.ui.theme.InfoldColors,
-    density: androidx.compose.ui.unit.Density,
-    selectedIndex: Int,
-    indicatorAlpha: Float,
-    blurLayer: GraphicsLayer,
-    modifier: Modifier,
-) {
-    val barHeight = with(density) { 56.dp.toPx() }
-    val horizontalPadding = with(density) { 24.dp.toPx() }
-    val bottomPadding = with(density) { 12.dp.toPx() }
-    val itemSize = with(density) { 48.dp.toPx() }
-    val radius = with(density) { 28.dp.toPx() }
+    val shape = RoundedCornerShape(28.dp)
 
     Box(modifier = modifier.fillMaxSize()) {
+        // バーの下にだけ影を落とし、画面から浮いている質感を作る。
         Canvas(modifier = Modifier.matchParentSize()) {
-            val barWidth = size.width - horizontalPadding * 2f
-            val barTop = size.height - bottomPadding - barHeight
-            val barRect = Rect(
-                left = horizontalPadding,
-                top = barTop,
-                right = horizontalPadding + barWidth,
-                bottom = barTop + barHeight,
-            )
-            val barPath = Path().apply {
-                addRoundRect(RoundRect(barRect, CornerRadius(radius, radius)))
-            }
-
-            // バーの下にだけ影を置き、画面から浮いている質感を作る。
+            val radius = 28.dp.toPx()
+            val barTop = size.height - 12.dp.toPx() - 56.dp.toPx()
             drawRoundRect(
                 color = Color.Black.copy(alpha = if (colors.isDark) 0.24f else 0.12f),
-                topLeft = Offset(barRect.left, barRect.top + with(density) { 4.dp.toPx() }),
-                size = Size(barRect.width, barRect.height),
+                topLeft = Offset(24.dp.toPx(), barTop + 4.dp.toPx()),
+                size = Size(size.width - 48.dp.toPx(), 56.dp.toPx()),
                 cornerRadius = CornerRadius(radius, radius),
             )
+        }
 
-            clipPath(barPath) {
-                // 背景コンテンツそのものを RenderEffect 付きで描画するため、
-                // 画像・文字・背景がガラス越しに実際に見え、軽くぼやける。
-                drawLayer(blurLayer)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
+                .height(56.dp),
+        ) {
+            // 背景ブラー面。Web 版（30px）より強めにして、重なった下が
+            // ぼやけて透けていることが分かるようにする。
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .infoldGlass(
+                        tint = if (colors.isDark) {
+                            Color(0xFF101114).copy(alpha = 0.40f)
+                        } else {
+                            Color.White.copy(alpha = 0.30f)
+                        },
+                        shape = shape,
+                        blurRadius = 44.dp,
+                    ),
+            )
+
+            Canvas(modifier = Modifier.matchParentSize()) {
+                val radius = 28.dp.toPx()
+                val barRect = Rect(Offset.Zero, size)
+
+                // ガラスのツヤ（上から下への淡いグラデーション）
                 drawRoundRect(
                     brush = if (colors.isDark) {
                         Brush.verticalGradient(
                             listOf(
                                 Color.White.copy(alpha = 0.13f),
-                                Color(0xFF202329).copy(alpha = 0.18f),
-                                Color(0xFF101114).copy(alpha = 0.12f),
+                                Color(0xFF202329).copy(alpha = 0.10f),
+                                Color(0xFF101114).copy(alpha = 0.06f),
                             )
                         )
                     } else {
                         Brush.verticalGradient(
                             listOf(
-                                Color.White.copy(alpha = 0.34f),
-                                Color.White.copy(alpha = 0.22f),
-                                Color(0xFFF4F5F2).copy(alpha = 0.18f),
+                                Color.White.copy(alpha = 0.30f),
+                                Color.White.copy(alpha = 0.16f),
+                                Color(0xFFF4F5F2).copy(alpha = 0.10f),
                             )
                         )
                     },
@@ -918,11 +868,11 @@ private fun FloatingBottomNavBarSurface(
                     size = barRect.size,
                     cornerRadius = CornerRadius(radius, radius),
                 )
-                // 控えめな斜めの反射。
+                // 控えめな斜めの反射
                 drawRoundRect(
                     brush = Brush.linearGradient(
                         listOf(
-                            Color.White.copy(alpha = 0.12f),
+                            Color.White.copy(alpha = 0.10f),
                             Color.Transparent,
                             Color.White.copy(alpha = 0.04f),
                         ),
@@ -933,43 +883,18 @@ private fun FloatingBottomNavBarSurface(
                     size = barRect.size,
                     cornerRadius = CornerRadius(radius, radius),
                 )
-            }
 
-            // 薄い明色の外周と、上側の柔らかなハイライト。
-            drawRoundRect(
-                color = Color.White.copy(alpha = if (colors.isDark) 0.30f else 0.58f),
-                topLeft = barRect.topLeft,
-                size = barRect.size,
-                cornerRadius = CornerRadius(radius, radius),
-                style = Stroke(width = with(density) { 1.dp.toPx() }),
-            )
-            drawLine(
-                color = Color.White.copy(alpha = if (colors.isDark) 0.22f else 0.42f),
-                start = Offset(barRect.left + radius, barRect.top + with(density) { 1.dp.toPx() }),
-                end = Offset(barRect.right - radius, barRect.top + with(density) { 1.dp.toPx() }),
-                strokeWidth = with(density) { 1.5.dp.toPx() },
-            )
+                // 選択中タブのハイライト（ブラー面の上に重ねる）
+                if (selectedIndex >= 0 && indicatorAlpha > 0f) {
+                    val itemSize = 48.dp.toPx()
+                    val innerLeft = 8.dp.toPx()
+                    val innerWidth = size.width - 16.dp.toPx()
+                    val gap = ((innerWidth - itemSize * items.size) / (items.size + 1))
+                        .coerceAtLeast(0f)
+                    val centerX = innerLeft + gap + itemSize / 2f + selectedIndex * (itemSize + gap)
+                    val centerY = size.height / 2f
+                    val selectionRadius = itemSize / 2f
 
-            if (selectedIndex >= 0 && indicatorAlpha > 0f) {
-                val innerLeft = barRect.left + with(density) { 8.dp.toPx() }
-                val innerWidth = barRect.width - with(density) { 16.dp.toPx() }
-                val gap = ((innerWidth - itemSize * items.size) / (items.size + 1)).coerceAtLeast(0f)
-                val centerX = innerLeft + gap + itemSize / 2f + selectedIndex * (itemSize + gap)
-                val centerY = barTop + barHeight / 2f
-                val selectionRadius = itemSize / 2f
-                val selectionPath = Path().apply {
-                    addOval(
-                        Rect(
-                            centerX - selectionRadius,
-                            centerY - selectionRadius,
-                            centerX + selectionRadius,
-                            centerY + selectionRadius,
-                        )
-                    )
-                }
-
-                clipPath(selectionPath) {
-                    drawLayer(blurLayer)
                     drawCircle(
                         color = colors.primary.copy(alpha = 0.12f * indicatorAlpha),
                         radius = selectionRadius,
@@ -977,26 +902,40 @@ private fun FloatingBottomNavBarSurface(
                     )
                     drawCircle(
                         color = Color.White.copy(alpha = if (colors.isDark) 0.14f else 0.28f),
-                        radius = selectionRadius - with(density) { 1.dp.toPx() },
+                        radius = selectionRadius - 1.dp.toPx(),
                         center = Offset(centerX, centerY),
-                        style = Stroke(width = with(density) { 1.dp.toPx() }),
+                        style = Stroke(width = 1.dp.toPx()),
+                    )
+                    drawArc(
+                        color = Color.White.copy(alpha = 0.30f * indicatorAlpha),
+                        startAngle = 205f,
+                        sweepAngle = 130f,
+                        useCenter = false,
+                        topLeft = Offset(
+                            centerX - selectionRadius + 2.dp.toPx(),
+                            centerY - selectionRadius + 2.dp.toPx(),
+                        ),
+                        size = Size(
+                            (selectionRadius - 2.dp.toPx()) * 2f,
+                            (selectionRadius - 2.dp.toPx()) * 2f,
+                        ),
+                        style = Stroke(width = 1.dp.toPx()),
                     )
                 }
-                // 選択領域の内側上端にだけ明るい反射を置く。
-                drawArc(
-                    color = Color.White.copy(alpha = 0.30f * indicatorAlpha),
-                    startAngle = 205f,
-                    sweepAngle = 130f,
-                    useCenter = false,
-                    topLeft = Offset(
-                        centerX - selectionRadius + with(density) { 2.dp.toPx() },
-                        centerY - selectionRadius + with(density) { 2.dp.toPx() },
-                    ),
-                    size = Size(
-                        (selectionRadius - with(density) { 2.dp.toPx() }) * 2f,
-                        (selectionRadius - with(density) { 2.dp.toPx() }) * 2f,
-                    ),
-                    style = Stroke(width = with(density) { 1.dp.toPx() }),
+
+                // 薄い明色の外周と、上側の柔らかなハイライト
+                drawRoundRect(
+                    color = Color.White.copy(alpha = if (colors.isDark) 0.30f else 0.58f),
+                    topLeft = barRect.topLeft,
+                    size = barRect.size,
+                    cornerRadius = CornerRadius(radius, radius),
+                    style = Stroke(width = 1.dp.toPx()),
+                )
+                drawLine(
+                    color = Color.White.copy(alpha = if (colors.isDark) 0.22f else 0.42f),
+                    start = Offset(barRect.left + radius, 1.dp.toPx()),
+                    end = Offset(barRect.right - radius, 1.dp.toPx()),
+                    strokeWidth = 1.5.dp.toPx(),
                 )
             }
         }

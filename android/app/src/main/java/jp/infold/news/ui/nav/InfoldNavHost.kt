@@ -20,8 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ExperimentalGraphicsApi
-import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -39,8 +37,8 @@ import jp.infold.news.ui.account.AccountScreen
 import jp.infold.news.ui.article.ArticleDetailScreen
 import jp.infold.news.ui.articles.ArticlesScreen
 import jp.infold.news.ui.categories.CategoriesScreen
-import jp.infold.news.ui.components.BackdropContent
 import jp.infold.news.ui.components.FloatingBottomNavBar
+import jp.infold.news.ui.components.HazeSourceContent
 import jp.infold.news.ui.components.FloatingNavItem
 import jp.infold.news.ui.home.HomeScreen
 import jp.infold.news.ui.login.LoginScreen
@@ -61,7 +59,6 @@ private val bottomNavItems = listOf(
     FloatingNavItem("account", R.string.nav_account, Icons.Filled.Person),
 )
 
-@OptIn(ExperimentalGraphicsApi::class)
 @Composable
 fun InfoldNavHost(viewModel: AppViewModel) {
     val navController = rememberNavController()
@@ -72,11 +69,6 @@ fun InfoldNavHost(viewModel: AppViewModel) {
     val adFree by viewModel.adFree.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
-    // 背景コンテンツを記録するレイヤー。バーはこのレイヤーを RenderEffect
-    // 付きで切り抜いて描画するため、同じウィンドウ内でも本当の背景ブラーになる。
-    val contentLayer = rememberGraphicsLayer()
-    val blurLayer = rememberGraphicsLayer()
-
     // 通知タップ / INFOLD リンク → ネイティブの記事詳細へ
     LaunchedEffect(Unit) {
         viewModel.navigateToArticle.collect { articleId ->
@@ -100,11 +92,7 @@ fun InfoldNavHost(viewModel: AppViewModel) {
             ) {
                 // ナビゲーションバーを Scaffold の bottomBar ではなくオーバーレイにする。
                 // これでスクロール中の記事画像や文字がバーの背後まで存在する。
-                BackdropContent(
-                    contentLayer = contentLayer,
-                    blurLayer = blurLayer,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
+                HazeSourceContent(modifier = Modifier.fillMaxSize()) {
                     NavHost(
                         navController = navController,
                         startDestination = "home",
@@ -222,7 +210,6 @@ fun InfoldNavHost(viewModel: AppViewModel) {
                         items = bottomNavItems,
                         currentRoute = currentRoute,
                         onSelect = { route -> selectTab(navController, route) },
-                        blurLayer = blurLayer,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
