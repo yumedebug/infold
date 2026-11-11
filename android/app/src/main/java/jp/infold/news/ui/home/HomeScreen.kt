@@ -2,6 +2,7 @@ package jp.infold.news.ui.home
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import jp.infold.news.R
 import jp.infold.news.data.ApiClient
 import jp.infold.news.data.Article
@@ -42,8 +44,9 @@ import jp.infold.news.ui.components.ErrorView
 import jp.infold.news.ui.components.FeaturedBannerCard
 import jp.infold.news.ui.components.GlassCard
 import jp.infold.news.ui.components.HeroCard
+import jp.infold.news.ui.components.InfoldGlassHeader
+import jp.infold.news.ui.components.InfoldHomeHeaderHeight
 import jp.infold.news.ui.components.LoadingView
-import jp.infold.news.ui.components.infoldGlass
 import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.categoryDisplayName
@@ -94,12 +97,16 @@ fun HomeScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // ヘッダー（Web 版と同じ半透明 + 背景ブラー）
-        Column(
+    Box(modifier = Modifier.fillMaxSize()) {
+        // ヘッダー（Web 版と同じ sticky + 背景ブラー）。
+        // 中身がヘッダーの下を流れるので、重なった部分がすかして見える。
+        InfoldGlassHeader(
             modifier = Modifier
-                .fillMaxWidth()
-                .infoldGlass(tint = colors.headerBackground.copy(alpha = 0.73f)),
+                .align(Alignment.TopCenter)
+                .zIndex(1f)
+                .fillMaxWidth(),
+            height = InfoldHomeHeaderHeight,
+            tint = colors.headerBackground.copy(alpha = 0.73f),
         ) {
             Row(
                 modifier = Modifier
@@ -133,7 +140,10 @@ fun HomeScreen(
 
             is UiState.Ready -> {
                 val data = s.data
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(top = InfoldHomeHeaderHeight),
+                ) {
                     // ヒーロー
                     data.hero?.let { hero ->
                         item(key = "hero") {

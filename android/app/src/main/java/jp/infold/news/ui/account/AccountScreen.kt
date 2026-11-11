@@ -46,6 +46,9 @@ import jp.infold.news.ui.components.BrandLogo
 import jp.infold.news.ui.components.GlassCard
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.components.SubTopBar
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.zIndex
+import jp.infold.news.ui.components.InfoldTopBarHeight
 import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.formatRemaining
 
@@ -77,10 +80,18 @@ fun AccountScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        SubTopBar(title = context.getString(R.string.nav_account), onBack = null)
+    Box(modifier = Modifier.fillMaxSize()) {
+        // ヘッダーはコンテンツの上に固定し、スクロール内容が下を流れる
+        SubTopBar(
+            title = context.getString(R.string.nav_account),
+            onBack = null,
+            modifier = Modifier.align(Alignment.TopCenter).zIndex(1f),
+        )
 
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(top = InfoldTopBarHeight),
+        ) {
             when (authState) {
                 is AuthState.Loading -> item { LoadingView(Modifier.fillMaxSize()) }
 

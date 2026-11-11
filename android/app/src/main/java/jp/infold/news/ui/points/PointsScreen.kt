@@ -47,6 +47,9 @@ import jp.infold.news.ui.components.GlassCard
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.components.SubTopBar
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.zIndex
+import jp.infold.news.ui.components.InfoldTopBarHeight
 import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.formatPublishedAt
 import jp.infold.news.util.formatRemaining
@@ -118,8 +121,12 @@ fun PointsScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        SubTopBar(title = context.getString(R.string.nav_points), onBack = onBack)
+    Box(modifier = Modifier.fillMaxSize()) {
+        SubTopBar(
+            title = context.getString(R.string.nav_points),
+            onBack = onBack,
+            modifier = Modifier.align(Alignment.TopCenter).zIndex(1f),
+        )
 
         when {
             !isLoggedIn -> {
@@ -130,7 +137,7 @@ fun PointsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    Spacer(Modifier.height(48.dp))
+                    Spacer(Modifier.height(InfoldTopBarHeight + 12.dp))
                     Text(
                         text = context.getString(R.string.points_login_required),
                         style = MaterialTheme.typography.titleLarge,
@@ -171,7 +178,10 @@ fun PointsScreen(
                 )
                 is UiState.Ready -> {
                     val summary = s.data
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(top = InfoldTopBarHeight),
+                    ) {
                         // 残高
                         item(key = "balance") {
                             GlassCard(

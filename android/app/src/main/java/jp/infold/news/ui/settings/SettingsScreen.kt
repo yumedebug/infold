@@ -42,6 +42,10 @@ import jp.infold.news.ui.LocalSnackbarHostState
 import jp.infold.news.ui.components.BrandLogo
 import jp.infold.news.ui.components.GlassCard
 import jp.infold.news.ui.components.SubTopBar
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.zIndex
+import jp.infold.news.ui.components.InfoldTopBarHeight
 import jp.infold.news.ui.theme.LocalInfoldColors
 import kotlinx.coroutines.launch
 
@@ -108,10 +112,17 @@ fun SettingsScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        SubTopBar(title = context.getString(R.string.nav_settings), onBack = onBack)
+    Box(modifier = Modifier.fillMaxSize()) {
+        SubTopBar(
+            title = context.getString(R.string.nav_settings),
+            onBack = onBack,
+            modifier = Modifier.align(Alignment.TopCenter).zIndex(1f),
+        )
 
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(top = InfoldTopBarHeight),
+        ) {
             // 言語
             item(key = "lang") {
                 GlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {

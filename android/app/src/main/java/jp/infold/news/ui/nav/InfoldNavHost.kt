@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -39,6 +39,7 @@ import jp.infold.news.ui.articles.ArticlesScreen
 import jp.infold.news.ui.categories.CategoriesScreen
 import jp.infold.news.ui.components.FloatingBottomNavBar
 import jp.infold.news.ui.components.HazeSourceContent
+import jp.infold.news.ui.components.InfoldSnackbarHost
 import jp.infold.news.ui.components.FloatingNavItem
 import jp.infold.news.ui.home.HomeScreen
 import jp.infold.news.ui.login.LoginScreen
@@ -82,7 +83,13 @@ fun InfoldNavHost(viewModel: AppViewModel) {
 
     Scaffold(
         containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        // 画面に重なるレイヤーなので、背後をブラーして透かす（Web の read-notice 相当）。
+        snackbarHost = {
+            InfoldSnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = 76.dp),
+            )
+        },
     ) { padding ->
         CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
             Box(

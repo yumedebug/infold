@@ -1,6 +1,5 @@
 package jp.infold.news.ui.components
 
-import android.os.Build
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -32,7 +31,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -43,7 +45,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.shadow
+
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
@@ -51,14 +54,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -66,7 +66,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import dev.chrisbanes.haze.HazeState
@@ -702,6 +701,48 @@ fun EmptyView(message: String, modifier: Modifier = Modifier) {
     }
 }
 
+/** サブ画面のトップバーの高さ（コンテンツをこの分だけ下げて下を流す） */
+val InfoldTopBarHeight = 61.dp
+
+/** ホームのブランドヘッダーの高さ */
+val InfoldHomeHeaderHeight = 65.dp
+
+/**
+ * 画面の上に固定され、背後のコンテンツが下を流れるガラス面。
+ * ヘッダー自身をブラー元（zIndex 2）として登録するので、内側のガラス面は
+ * 「固定背景」と「スクロール中の内容」の両方を実際にぼかして透かす。
+ * Web 版の position: sticky ヘッダーと同じ重なり方になる。
+ */
+@Composable
+fun InfoldGlassHeader(
+    modifier: Modifier = Modifier,
+    height: Dp,
+    tint: Color? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val haze = LocalInfoldHaze.current
+    val headerTint = tint ?: LocalInfoldColors.current.headerBackground.copy(alpha = 0.73f)
+    if (haze == null) {
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(height)
+                .background(headerTint),
+            content = content,
+        )
+    } else {
+        Box(modifier = modifier.hazeSource(haze, zIndex = 2f)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(height)
+                    .infoldGlass(tint = headerTint),
+                content = content,
+            )
+        }
+    }
+}
+
 /** サブ画面用のトップバー */
 @Composable
 fun SubTopBar(
@@ -711,10 +752,10 @@ fun SubTopBar(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalInfoldColors.current
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .infoldGlass(tint = colors.headerBackground.copy(alpha = 0.73f)),
+    InfoldGlassHeader(
+        modifier = modifier,
+        height = InfoldTopBarHeight,
+        tint = colors.headerBackground.copy(alpha = 0.73f),
     ) {
         Row(
             modifier = Modifier
@@ -741,6 +782,34 @@ fun SubTopBar(
             color = colors.cardBorder,
             thickness = 1.dp,
         )
+    }
+}
+
+/**
+ * Web 版の read-notice / toast と同じ、背後の内容をぼかして透かすスナックバー。
+ * 画面の上に重なるレイヤーなので、固定背景 + 画面内容をブラーした上に文字を置く。
+ */
+@Composable
+fun InfoldSnackbarHost(
+    hostState: SnackbarHostState,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalInfoldColors.current
+    val shape = RoundedCornerShape(14.dp)
+    SnackbarHost(hostState = hostState, modifier = modifier) { data ->
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 20.dp, vertical = 10.dp)
+                .infoldGlass(tint = colors.surface.copy(alpha = 0.78f), shape = shape, blurRadius = 30.dp)
+                .border(1.dp, colors.cardBorder, shape)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            Text(
+                text = data.visuals.message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textPrimary,
+            )
+        }
     }
 }
 
@@ -806,18 +875,6 @@ fun FloatingBottomNavBar(
     val shape = RoundedCornerShape(28.dp)
 
     Box(modifier = modifier.fillMaxSize()) {
-        // バーの下にだけ影を落とし、画面から浮いている質感を作る。
-        Canvas(modifier = Modifier.matchParentSize()) {
-            val radius = 28.dp.toPx()
-            val barTop = size.height - 12.dp.toPx() - 56.dp.toPx()
-            drawRoundRect(
-                color = Color.Black.copy(alpha = if (colors.isDark) 0.24f else 0.12f),
-                topLeft = Offset(24.dp.toPx(), barTop + 4.dp.toPx()),
-                size = Size(size.width - 48.dp.toPx(), 56.dp.toPx()),
-                cornerRadius = CornerRadius(radius, radius),
-            )
-        }
-
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -827,9 +884,11 @@ fun FloatingBottomNavBar(
         ) {
             // 背景ブラー面。Web 版（30px）より強めにして、重なった下が
             // ぼやけて透けていることが分かるようにする。
+            // 影は不透明な矩形ではなく、ぼけた elevation 影で落とす。
             Box(
                 modifier = Modifier
                     .matchParentSize()
+                    .shadow(elevation = 18.dp, shape = shape, clip = false)
                     .infoldGlass(
                         tint = if (colors.isDark) {
                             Color(0xFF101114).copy(alpha = 0.40f)

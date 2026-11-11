@@ -36,6 +36,9 @@ import jp.infold.news.data.ApiException
 import jp.infold.news.ui.components.BrandLogo
 import jp.infold.news.ui.components.BrandWordmark
 import jp.infold.news.ui.components.SubTopBar
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.zIndex
+import jp.infold.news.ui.components.InfoldTopBarHeight
 import jp.infold.news.ui.theme.LocalInfoldColors
 import kotlinx.coroutines.launch
 import jp.infold.news.R
@@ -108,8 +111,12 @@ fun LoginScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        SubTopBar(title = context.getString(R.string.account_title), onBack = onBack)
+    Box(modifier = Modifier.fillMaxSize()) {
+        SubTopBar(
+            title = context.getString(R.string.account_title),
+            onBack = onBack,
+            modifier = Modifier.align(Alignment.TopCenter).zIndex(1f),
+        )
 
         Column(
             modifier = Modifier
@@ -119,7 +126,7 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(InfoldTopBarHeight + 16.dp))
             BrandLogo(size = 56.dp)
             Spacer(Modifier.height(4.dp))
             BrandWordmark()

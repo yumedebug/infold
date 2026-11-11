@@ -67,6 +67,9 @@ import jp.infold.news.ui.components.InfoldFallbackHeader
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.components.SubTopBar
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.zIndex
+import jp.infold.news.ui.components.InfoldTopBarHeight
 import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.categoryDisplayName
 import jp.infold.news.util.formatPublishedAt
@@ -148,10 +151,14 @@ fun ArticleDetailScreen(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier.fillMaxSize(),
     ) {
-        SubTopBar(title = context.getString(R.string.nav_articles), onBack = onBack)
+        SubTopBar(
+            title = context.getString(R.string.nav_articles),
+            onBack = onBack,
+            modifier = Modifier.align(Alignment.TopCenter).zIndex(1f),
+        )
 
         when (val s = state) {
             is UiState.Loading -> LoadingView(Modifier.fillMaxSize())
@@ -186,6 +193,7 @@ fun ArticleDetailScreen(
                 LazyColumn(
                     state = scrollState,
                     modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(top = InfoldTopBarHeight),
                 ) {
                     // ヒーロー画像（画像なし・読み込み失敗時は INFOLD フォールバック）
                     item(key = "hero") {
