@@ -1,6 +1,5 @@
 package jp.infold.news.ui.components
 
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -51,12 +49,12 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
@@ -866,11 +864,6 @@ fun FloatingBottomNavBar(
         if (item.route == "articles") currentRoute?.startsWith("articles") == true
         else currentRoute == item.route
     }
-    val indicatorAlpha by animateFloatAsState(
-        targetValue = if (selectedIndex >= 0) 1f else 0f,
-        animationSpec = tween(durationMillis = 250, easing = LinearEasing),
-        label = "glass-indicator",
-    )
     val shape = RoundedCornerShape(28.dp)
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -942,45 +935,6 @@ fun FloatingBottomNavBar(
                     cornerRadius = CornerRadius(radius, radius),
                 )
 
-                // 選択中タブのハイライト（ブラー面の上に重ねる）
-                if (selectedIndex >= 0 && indicatorAlpha > 0f) {
-                    val itemSize = 48.dp.toPx()
-                    val innerLeft = 8.dp.toPx()
-                    val innerWidth = size.width - 16.dp.toPx()
-                    val gap = ((innerWidth - itemSize * items.size) / (items.size + 1))
-                        .coerceAtLeast(0f)
-                    val centerX = innerLeft + gap + itemSize / 2f + selectedIndex * (itemSize + gap)
-                    val centerY = size.height / 2f
-                    val selectionRadius = itemSize / 2f
-
-                    drawCircle(
-                        color = colors.primary.copy(alpha = 0.12f * indicatorAlpha),
-                        radius = selectionRadius,
-                        center = Offset(centerX, centerY),
-                    )
-                    drawCircle(
-                        color = Color.White.copy(alpha = if (colors.isDark) 0.14f else 0.28f),
-                        radius = selectionRadius - 1.dp.toPx(),
-                        center = Offset(centerX, centerY),
-                        style = Stroke(width = 1.dp.toPx()),
-                    )
-                    drawArc(
-                        color = Color.White.copy(alpha = 0.30f * indicatorAlpha),
-                        startAngle = 205f,
-                        sweepAngle = 130f,
-                        useCenter = false,
-                        topLeft = Offset(
-                            centerX - selectionRadius + 2.dp.toPx(),
-                            centerY - selectionRadius + 2.dp.toPx(),
-                        ),
-                        size = Size(
-                            (selectionRadius - 2.dp.toPx()) * 2f,
-                            (selectionRadius - 2.dp.toPx()) * 2f,
-                        ),
-                        style = Stroke(width = 1.dp.toPx()),
-                    )
-                }
-
                 // 薄い明色の外周と、上側の柔らかなハイライト
                 drawRoundRect(
                     color = Color.White.copy(alpha = if (colors.isDark) 0.30f else 0.58f),
@@ -1027,25 +981,27 @@ private fun FloatingNavItemButton(
 ) {
     val colors = LocalInfoldColors.current
     val context = LocalContext.current
-    val iconScale by animateFloatAsState(
-        targetValue = if (selected) 1.15f else 1f,
-        animationSpec = tween(durationMillis = 250, easing = LinearEasing),
-        label = "icon",
+    // 選択状態は背景の丸やピルではなく、アイコンの色だけで示す。
+    val selection by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = tween(durationMillis = 180),
+        label = "nav-icon-tint",
     )
+    val tint = lerp(colors.textFaint.copy(alpha = 0.80f), colors.primary, selection)
     val label = remember(item.labelRes) { context.getString(item.labelRes) }
 
     Box(
         modifier = Modifier
             .size(width = 48.dp, height = 48.dp)
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = item.icon,
             contentDescription = label,
-            tint = if (selected) colors.primary else colors.textFaint.copy(alpha = 0.72f),
-            modifier = Modifier.size((22 * iconScale).dp),
+            tint = tint,
+            modifier = Modifier.size(23.dp),
         )
     }
 }
