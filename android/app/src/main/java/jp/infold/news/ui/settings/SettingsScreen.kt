@@ -108,7 +108,7 @@ fun SettingsScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
+    Column(modifier = Modifier.fillMaxSize()) {
         SubTopBar(title = context.getString(R.string.nav_settings), onBack = onBack)
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {

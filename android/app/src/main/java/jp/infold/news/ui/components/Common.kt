@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,6 +56,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -70,6 +73,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
 import jp.infold.news.data.ApiClient
 import jp.infold.news.data.Article
 import jp.infold.news.data.BASE_URL
@@ -136,7 +143,86 @@ fun BrandWordmark(modifier: Modifier = Modifier) {
     )
 }
 
-/** ソリッドカード（不透明背景 + ボーダー） */
+// ============================================================
+// Web 版の Liquid Glass（6.0）
+// 淡いグリッド + グローを固定背景として描き、その上に置く面は
+// 半透明 + backdrop-filter: blur(30px) 相当の背景ブラーをかける。
+// ============================================================
+
+/** アプリ全体で共有するブラー元（固定背景）の状態 */
+val LocalInfoldHaze = staticCompositionLocalOf<HazeState?> { null }
+
+/** Web 版 body の固定背景（グリーンのグロー + 96dp グリッド） */
+@Composable
+fun InfoldBackdrop(modifier: Modifier = Modifier) {
+    val colors = LocalInfoldColors.current
+    val density = LocalDensity.current
+    Canvas(modifier = modifier) {
+        drawRect(colors.background)
+        drawRect(
+            Brush.radialGradient(
+                colors = listOf(
+                    colors.primary.copy(alpha = if (colors.isDark) 0.15f else 0.10f),
+                    Color.Transparent,
+                ),
+                center = Offset(size.width * 0.04f, -size.height * 0.12f),
+                radius = size.width * 1.05f,
+            )
+        )
+        drawRect(
+            Brush.radialGradient(
+                colors = listOf(
+                    colors.primary2.copy(alpha = if (colors.isDark) 0.13f else 0.09f),
+                    Color.Transparent,
+                ),
+                center = Offset(size.width * 1.02f, -size.height * 0.04f),
+                radius = size.width * 0.9f,
+            )
+        )
+        val step = with(density) { 96.dp.toPx() }
+        val lineColor = colors.textPrimary.copy(alpha = 0.04f)
+        val stroke = with(density) { 1.dp.toPx() }
+        var x = step
+        while (x < size.width) {
+            drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), stroke)
+            x += step
+        }
+        var y = step
+        while (y < size.height) {
+            drawLine(lineColor, Offset(0f, y), Offset(size.width, y), stroke)
+            y += step
+        }
+    }
+}
+
+/**
+ * Web 版のガラス面。半透明の色を塗るだけでは背景が透けるだけなので、
+ * 背後の固定背景を実際にぼかしてから色を重ねる（Haze）。
+ * ブラーに対応しない環境では半透明の面にフォールバックする。
+ */
+@Composable
+fun Modifier.infoldGlass(
+    tint: Color,
+    shape: Shape = RectangleShape,
+    blurRadius: Dp = 30.dp,
+): Modifier {
+    val haze = LocalInfoldHaze.current
+    val clipped = clip(shape)
+    return if (haze != null) {
+        clipped.hazeEffect(
+            state = haze,
+            style = HazeStyle(
+                blurRadius = blurRadius,
+                tints = listOf(HazeTint(tint)),
+                noiseFactor = 0f,
+            ),
+        )
+    } else {
+        clipped.background(tint, shape)
+    }
+}
+
+/** ガラスカード（半透明 + 背景ブラー + ボーダー） */
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
@@ -148,8 +234,7 @@ fun GlassCard(
     val clickModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Column(
         modifier = modifier
-            .clip(shape)
-            .background(colors.surface)
+            .infoldGlass(tint = colors.surface.copy(alpha = 0.76f), shape = shape)
             .border(1.dp, colors.cardBorder, shape)
             .then(clickModifier),
         content = content,
@@ -629,7 +714,11 @@ fun SubTopBar(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalInfoldColors.current
-    Column(modifier = modifier.fillMaxWidth().background(colors.headerBackground)) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .infoldGlass(tint = colors.headerBackground.copy(alpha = 0.73f)),
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

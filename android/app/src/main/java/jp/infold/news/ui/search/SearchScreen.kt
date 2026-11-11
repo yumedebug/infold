@@ -1,6 +1,5 @@
 package jp.infold.news.ui.search
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -90,7 +89,7 @@ fun SearchScreen(
         loading = false
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
+    Column(modifier = Modifier.fillMaxSize()) {
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },

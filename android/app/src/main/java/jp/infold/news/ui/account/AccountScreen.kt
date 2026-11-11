@@ -77,7 +77,7 @@ fun AccountScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
+    Column(modifier = Modifier.fillMaxSize()) {
         SubTopBar(title = context.getString(R.string.nav_account), onBack = null)
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {

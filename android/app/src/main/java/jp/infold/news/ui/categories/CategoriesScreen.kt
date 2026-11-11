@@ -1,6 +1,5 @@
 package jp.infold.news.ui.categories
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,7 +43,7 @@ fun CategoriesScreen(
     val colors = LocalInfoldColors.current
     val context = LocalContext.current
 
-    Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
+    Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item(key = "head") {
                 Column(

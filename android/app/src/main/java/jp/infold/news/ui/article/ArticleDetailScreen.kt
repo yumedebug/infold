@@ -149,9 +149,7 @@ fun ArticleDetailScreen(
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background),
+        modifier = Modifier.fillMaxSize(),
     ) {
         SubTopBar(title = context.getString(R.string.nav_articles), onBack = onBack)
 

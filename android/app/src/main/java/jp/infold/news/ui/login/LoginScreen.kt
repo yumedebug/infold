@@ -1,6 +1,5 @@
 package jp.infold.news.ui.login
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -109,7 +108,7 @@ fun LoginScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
+    Column(modifier = Modifier.fillMaxSize()) {
         SubTopBar(title = context.getString(R.string.account_title), onBack = onBack)
 
         Column(

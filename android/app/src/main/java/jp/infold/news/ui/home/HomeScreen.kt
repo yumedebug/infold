@@ -1,6 +1,5 @@
 package jp.infold.news.ui.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +43,7 @@ import jp.infold.news.ui.components.FeaturedBannerCard
 import jp.infold.news.ui.components.GlassCard
 import jp.infold.news.ui.components.HeroCard
 import jp.infold.news.ui.components.LoadingView
+import jp.infold.news.ui.components.infoldGlass
 import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.categoryDisplayName
@@ -94,9 +94,13 @@ fun HomeScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
-        // ヘッダー（ソリッド背景）
-        Column(modifier = Modifier.fillMaxWidth().background(colors.headerBackground)) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        // ヘッダー（Web 版と同じ半透明 + 背景ブラー）
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .infoldGlass(tint = colors.headerBackground.copy(alpha = 0.73f)),
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

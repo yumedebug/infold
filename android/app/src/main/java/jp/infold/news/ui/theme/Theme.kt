@@ -1,12 +1,20 @@
 package jp.infold.news.ui.theme
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Modifier
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
+import jp.infold.news.ui.components.InfoldBackdrop
+import jp.infold.news.ui.components.LocalInfoldHaze
 
 val LocalInfoldColors = staticCompositionLocalOf { DarkInfoldColors }
 
@@ -53,11 +61,24 @@ fun InfoldTheme(
         )
     }
 
-    CompositionLocalProvider(LocalInfoldColors provides colors) {
+    // Web 版の固定背景（グロー + グリッド）を全画面のブラー元として共有する。
+    val hazeState = rememberHazeState()
+    CompositionLocalProvider(
+        LocalInfoldColors provides colors,
+        LocalInfoldHaze provides hazeState,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,
-            content = content,
-        )
+        ) {
+            Box(modifier = Modifier.fillMaxSize().background(colors.background)) {
+                InfoldBackdrop(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeSource(hazeState),
+                )
+                content()
+            }
+        }
     }
 }

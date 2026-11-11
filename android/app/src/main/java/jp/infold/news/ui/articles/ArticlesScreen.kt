@@ -1,6 +1,5 @@
 package jp.infold.news.ui.articles
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -151,7 +150,7 @@ fun ArticlesScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
+    Column(modifier = Modifier.fillMaxSize()) {
         // カテゴリフィルター
         LazyRow(
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),

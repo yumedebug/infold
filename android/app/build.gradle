@@ -50,8 +50,8 @@ android {
         applicationId 'jp.infold.news'
         minSdk 26
         targetSdk 35
-        versionCode 6
-        versionName '3.0.1'
+        versionCode 7
+        versionName '3.0.2'
     }
 
     signingConfigs {
@@ -125,6 +125,9 @@ dependencies {
     implementation 'io.coil-kt:coil-compose:2.7.0'
     // SVG サムネイル（R2 未設定時の data URI 形式）の描画に必要
     implementation 'io.coil-kt:coil-svg:2.7.0'
+
+    // ---- Web 版と同じ背景ブラー（Liquid Glass） ----
+    implementation 'dev.chrisbanes.haze:haze:1.6.10'
 
     // ---- Firebase Cloud Messaging（google-services.json なしでも動作） ----
     implementation platform('com.google.firebase:firebase-bom:33.7.0')

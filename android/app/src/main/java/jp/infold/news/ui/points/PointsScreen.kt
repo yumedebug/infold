@@ -118,7 +118,7 @@ fun PointsScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
+    Column(modifier = Modifier.fillMaxSize()) {
         SubTopBar(title = context.getString(R.string.nav_points), onBack = onBack)
 
         when {
