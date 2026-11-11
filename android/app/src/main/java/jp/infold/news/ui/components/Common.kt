@@ -211,6 +211,9 @@ fun Modifier.infoldGlass(
                 blurRadius = blurRadius,
                 tints = listOf(HazeTint(tint)),
                 noiseFactor = 0f,
+                // ブラーが使えない端末（Android 11 以下 / SDK 31 など）でも
+                // 完全に透明にならないように半透明のスクリムを残す。
+                fallbackTint = HazeTint(tint),
             ),
         )
     } else {
