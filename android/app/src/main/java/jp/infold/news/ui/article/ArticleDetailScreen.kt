@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import jp.infold.news.R
 import jp.infold.news.data.ApiClient
-import jp.infold.news.data.Article
+import jp.infold.news.data.ArticleDetail
 import jp.infold.news.data.ArticleDetailResponse
 import jp.infold.news.data.BASE_URL
 import jp.infold.news.data.Category
@@ -345,7 +345,7 @@ fun ArticleDetailScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ArticleShareBar(article: Article) {
+private fun ArticleShareBar(article: ArticleDetail) {
     val colors = LocalInfoldColors.current
     val context = LocalContext.current
     val snackbar = LocalSnackbarHostState.current
