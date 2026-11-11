@@ -27,6 +27,7 @@ import jp.infold.news.R
 import jp.infold.news.data.Category
 import jp.infold.news.ui.components.CategoryBadge
 import jp.infold.news.ui.components.GlassCard
+import jp.infold.news.ui.components.infoldHazeSource
 import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.categoryDisplayName
 
@@ -44,7 +45,7 @@ fun CategoriesScreen(
     val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(modifier = Modifier.fillMaxSize().infoldHazeSource()) {
             item(key = "head") {
                 Column(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),

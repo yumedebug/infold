@@ -42,6 +42,7 @@ import jp.infold.news.ui.components.CategoryChip
 import jp.infold.news.ui.components.EmptyView
 import jp.infold.news.ui.components.ErrorView
 import jp.infold.news.ui.components.FeaturedBannerCard
+import jp.infold.news.ui.components.infoldHazeSource
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.theme.LocalInfoldColors
@@ -190,7 +191,7 @@ fun ArticlesScreen(
 
             else -> LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().infoldHazeSource(),
             ) {
                 // おすすめ記事（水平カルーセル）
                 if (featured.isNotEmpty()) {

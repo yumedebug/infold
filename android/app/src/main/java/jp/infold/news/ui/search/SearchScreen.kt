@@ -38,6 +38,7 @@ import jp.infold.news.ui.components.EmptyView
 import jp.infold.news.ui.components.ErrorView
 import jp.infold.news.ui.components.FeaturedBannerCard
 import jp.infold.news.ui.ads.InfoldAdBanner
+import jp.infold.news.ui.components.infoldHazeSource
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.theme.LocalInfoldColors
@@ -127,7 +128,7 @@ fun SearchScreen(
                 modifier = Modifier.fillMaxSize(),
             )
 
-            searched -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+            searched -> LazyColumn(modifier = Modifier.fillMaxSize().infoldHazeSource()) {
                 item(key = "count") {
                     Text(
                         text = context.getString(R.string.search_results_for, query.trim()),
@@ -158,7 +159,7 @@ fun SearchScreen(
             }
 
             else -> androidx.compose.foundation.lazy.LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().infoldHazeSource(),
             ) {
                 // 検索ヒント
                 item(key = "hint") {

@@ -826,23 +826,19 @@ fun AccountIconButton(onClick: () -> Unit) {
 }
 
 /**
- * 画面内容をブラー元として登録するラッパー。
- * 下部バーはこの内容（スクロール中の記事・画像）と固定背景を
- * Haze でサンプリングするため、重なった部分が実際にぼやけて透ける。
- * zIndex を固定背景（0）より大きくして、内側のガラス面が
- * 自分自身をサンプリングしないようにしている。
+ * スクロール領域をブラー元として登録する。
+ *
+ * Haze は「ブラー元の内側にあるブラー」がそのブラー元を参照すると
+ * 循環描画になり例外で落ちる（BlurEffect.kt の require(!area.contentDrawing)）。
+ * そのためブラー元は「ヘッダーの外側にあるスクロール領域だけ」に付け、
+ * 上に重なるヘッダー・下部バー・スナックバーから参照させる。
+ * zIndex を固定背景（0）より大きくして、カード等の内側のガラス面が
+ * スクロール内容を再帰的にサンプリングしないようにしている。
  */
 @Composable
-fun HazeSourceContent(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
+fun Modifier.infoldHazeSource(zIndex: Float = 1f): Modifier {
     val haze = LocalInfoldHaze.current
-    Box(
-        modifier = if (haze != null) modifier.hazeSource(haze, zIndex = 1f) else modifier,
-    ) {
-        content()
-    }
+    return if (haze != null) hazeSource(haze, zIndex = zIndex) else this
 }
 
 // ============================================================

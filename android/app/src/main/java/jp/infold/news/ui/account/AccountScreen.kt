@@ -44,6 +44,7 @@ import jp.infold.news.data.ApiClient
 import jp.infold.news.data.PointsSummary
 import jp.infold.news.ui.components.BrandLogo
 import jp.infold.news.ui.components.GlassCard
+import jp.infold.news.ui.components.infoldHazeSource
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.components.SubTopBar
 import androidx.compose.foundation.layout.PaddingValues
@@ -89,7 +90,7 @@ fun AccountScreen(
         )
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().infoldHazeSource(),
             contentPadding = PaddingValues(top = InfoldTopBarHeight),
         ) {
             when (authState) {

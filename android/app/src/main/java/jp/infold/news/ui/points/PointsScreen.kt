@@ -44,6 +44,7 @@ import jp.infold.news.ui.LocalSnackbarHostState
 import jp.infold.news.ui.UiState
 import jp.infold.news.ui.components.ErrorView
 import jp.infold.news.ui.components.GlassCard
+import jp.infold.news.ui.components.infoldHazeSource
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.components.SubTopBar
@@ -179,7 +180,7 @@ fun PointsScreen(
                 is UiState.Ready -> {
                     val summary = s.data
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().infoldHazeSource(),
                         contentPadding = PaddingValues(top = InfoldTopBarHeight),
                     ) {
                         // 残高

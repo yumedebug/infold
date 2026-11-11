@@ -43,6 +43,7 @@ import jp.infold.news.ui.components.CategoryChip
 import jp.infold.news.ui.components.ErrorView
 import jp.infold.news.ui.components.FeaturedBannerCard
 import jp.infold.news.ui.components.GlassCard
+import jp.infold.news.ui.components.infoldHazeSource
 import jp.infold.news.ui.components.HeroCard
 import jp.infold.news.ui.components.InfoldGlassHeader
 import jp.infold.news.ui.components.InfoldHomeHeaderHeight
@@ -141,7 +142,7 @@ fun HomeScreen(
             is UiState.Ready -> {
                 val data = s.data
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().infoldHazeSource(),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(top = InfoldHomeHeaderHeight),
                 ) {
                     // ヒーロー

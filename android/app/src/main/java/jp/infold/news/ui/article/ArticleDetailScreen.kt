@@ -64,6 +64,7 @@ import jp.infold.news.ui.components.CategoryBadge
 import jp.infold.news.ui.components.ErrorView
 import jp.infold.news.ui.components.GlassCard
 import jp.infold.news.ui.components.InfoldFallbackHeader
+import jp.infold.news.ui.components.infoldHazeSource
 import jp.infold.news.ui.components.LoadingView
 import jp.infold.news.ui.components.SectionTitle
 import jp.infold.news.ui.components.SubTopBar
@@ -192,7 +193,7 @@ fun ArticleDetailScreen(
 
                 LazyColumn(
                     state = scrollState,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().infoldHazeSource(),
                     contentPadding = PaddingValues(top = InfoldTopBarHeight),
                 ) {
                     // ヒーロー画像（画像なし・読み込み失敗時は INFOLD フォールバック）

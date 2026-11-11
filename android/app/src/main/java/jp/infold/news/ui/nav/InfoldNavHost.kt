@@ -38,7 +38,6 @@ import jp.infold.news.ui.article.ArticleDetailScreen
 import jp.infold.news.ui.articles.ArticlesScreen
 import jp.infold.news.ui.categories.CategoriesScreen
 import jp.infold.news.ui.components.FloatingBottomNavBar
-import jp.infold.news.ui.components.HazeSourceContent
 import jp.infold.news.ui.components.InfoldSnackbarHost
 import jp.infold.news.ui.components.FloatingNavItem
 import jp.infold.news.ui.home.HomeScreen
@@ -99,8 +98,7 @@ fun InfoldNavHost(viewModel: AppViewModel) {
             ) {
                 // ナビゲーションバーを Scaffold の bottomBar ではなくオーバーレイにする。
                 // これでスクロール中の記事画像や文字がバーの背後まで存在する。
-                HazeSourceContent(modifier = Modifier.fillMaxSize()) {
-                    NavHost(
+                NavHost(
                         navController = navController,
                         startDestination = "home",
                         modifier = Modifier.fillMaxSize(),
@@ -210,7 +208,6 @@ fun InfoldNavHost(viewModel: AppViewModel) {
                     )
                         }
                     }
-                }
 
                 if (showBottomBar) {
                     FloatingBottomNavBar(

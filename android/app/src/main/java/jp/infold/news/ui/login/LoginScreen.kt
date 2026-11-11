@@ -35,6 +35,7 @@ import jp.infold.news.data.ApiClient
 import jp.infold.news.data.ApiException
 import jp.infold.news.ui.components.BrandLogo
 import jp.infold.news.ui.components.BrandWordmark
+import jp.infold.news.ui.components.infoldHazeSource
 import jp.infold.news.ui.components.SubTopBar
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.zIndex
@@ -121,6 +122,7 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .infoldHazeSource()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

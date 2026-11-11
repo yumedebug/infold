@@ -41,6 +41,7 @@ import jp.infold.news.isFirebaseAvailable
 import jp.infold.news.ui.LocalSnackbarHostState
 import jp.infold.news.ui.components.BrandLogo
 import jp.infold.news.ui.components.GlassCard
+import jp.infold.news.ui.components.infoldHazeSource
 import jp.infold.news.ui.components.SubTopBar
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -120,7 +121,7 @@ fun SettingsScreen(
         )
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().infoldHazeSource(),
             contentPadding = PaddingValues(top = InfoldTopBarHeight),
         ) {
             // 言語
