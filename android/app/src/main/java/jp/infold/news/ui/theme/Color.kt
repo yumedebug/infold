@@ -4,48 +4,50 @@ import androidx.compose.ui.graphics.Color
 
 // ============================================================
 // INFOLD カラーパレット
-// 画面の可読性を保ちつつ、Liquid Glass サーフェスは各コンポーネント側で
-// 背景を透過して重ねる。下部ナビゲーションでは RenderEffect も使用する。
+// html/index.html の CSS 変数（INFOLD 2.0）と同一の値を使用する。
 // ============================================================
 
-// ---- ネオンアクセント ----
-val NeonCyan = Color(0xFF00E0FF)
-val NeonViolet = Color(0xFF8B5CFF)
-val NeonPink = Color(0xFFFF3D9A)
+// ---- アクセント（Web 版と同一） ----
+val NeonCyan = Color(0xFF83C441)
+val NeonViolet = Color(0xFF6EAA35)
+val NeonPink = Color(0xFFA5D86A)
+val NeonGreen = Color(0xFF83C441)
 
 // ---- ダークテーマ ----
-val DarkBg = Color(0xFF0F1118)
-val DarkBgSoft = Color(0xFF1A1D2B)
-val DarkCard = Color(0xFF1E2235)
-val DarkCardHover = Color(0xFF262A3F)
-val DarkText = Color(0xFFE8ECFF)
-val DarkMuted = Color(0xFF8B95B8)
-val DarkFaint = Color(0xFF5A6585)
-val DarkBorder = Color(0xFF2A2E42)
-val DarkPrimary = Color(0xFF00C8FF)
-val DarkPrimary2 = Color(0xFF8B5CFF)
-val DarkAccent = Color(0xFFFF3D9A)
-val DarkOk = Color(0xFF3DFFB8)
-val DarkWarn = Color(0xFFFFB020)
-val DarkHeader = Color(0xFF161927)
-val DarkCardBorder = Color(0xFF2A2E42)
+val DarkBg = Color(0xFF101114)
+val DarkBgSoft = Color(0xFF17191D)
+val DarkCard = Color(0xFF202329)
+val DarkCardHover = Color(0xFF252930)
+val DarkText = Color(0xFFF5F5F5)
+val DarkMuted = Color(0xFFA5A8AE)
+val DarkFaint = Color(0xFF7C8188)
+val DarkBorder = Color(0xFF34373D)
+val DarkPrimary = Color(0xFF83C441)
+val DarkPrimary2 = Color(0xFF5E952A)
+val DarkAccent = Color(0xFF83C441)
+val DarkOk = Color(0xFF8FD14F)
+val DarkWarn = Color(0xFFE2B04A)
+val DarkHeader = Color(0xFF101114)
+val DarkCardBorder = Color(0xFF34373D)
+val DarkOnPrimary = Color(0xFF101114)
 
 // ---- ライトテーマ ----
-val LightBg = Color(0xFFF3F4F8)
-val LightBgSoft = Color(0xFFE8EAF0)
+val LightBg = Color(0xFFFFFFFF)
+val LightBgSoft = Color(0xFFF4F5F2)
 val LightCard = Color(0xFFFFFFFF)
-val LightCardHover = Color(0xFFF0F1F5)
-val LightText = Color(0xFF1A1D2B)
-val LightMuted = Color(0xFF566488)
-val LightFaint = Color(0xFF8B97B8)
-val LightBorder = Color(0xFFDDE0E8)
-val LightPrimary = Color(0xFF0D8BFF)
-val LightPrimary2 = Color(0xFF6A4DFF)
-val LightAccent = Color(0xFFFF3D9A)
-val LightOk = Color(0xFF0A9E6D)
-val LightWarn = Color(0xFFD97706)
+val LightCardHover = Color(0xFFF8F9F6)
+val LightText = Color(0xFF17191B)
+val LightMuted = Color(0xFF666B70)
+val LightFaint = Color(0xFF8A9089)
+val LightBorder = Color(0xFFE1E4DF)
+val LightPrimary = Color(0xFF6EAA35)
+val LightPrimary2 = Color(0xFF4F7D24)
+val LightAccent = Color(0xFF6EAA35)
+val LightOk = Color(0xFF4F8A2A)
+val LightWarn = Color(0xFFA56806)
 val LightHeader = Color(0xFFFFFFFF)
-val LightCardBorder = Color(0xFFDDE0E8)
+val LightCardBorder = Color(0xFFE1E4DF)
+val LightOnPrimary = Color(0xFFFFFFFF)
 
 // ---- カテゴリカラー（Web 版と同一） ----
 val CategoryColors = mapOf(
@@ -79,6 +81,7 @@ data class InfoldColors(
     val warn: Color,
     val cardBorder: Color,
     val headerBackground: Color,
+    val onPrimary: Color,
     val isDark: Boolean,
 )
 
@@ -98,6 +101,7 @@ val LightInfoldColors = InfoldColors(
     warn = LightWarn,
     cardBorder = LightCardBorder,
     headerBackground = LightHeader,
+    onPrimary = LightOnPrimary,
     isDark = false,
 )
 
@@ -117,5 +121,6 @@ val DarkInfoldColors = InfoldColors(
     warn = DarkWarn,
     cardBorder = DarkCardBorder,
     headerBackground = DarkHeader,
+    onPrimary = DarkOnPrimary,
     isDark = true,
 )

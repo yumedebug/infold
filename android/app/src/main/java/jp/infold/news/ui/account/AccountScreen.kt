@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
@@ -160,7 +161,7 @@ fun AccountScreen(
                                     Text(
                                         text = (user.name.ifBlank { user.email }).take(1).uppercase(),
                                         style = MaterialTheme.typography.titleLarge,
-                                        color = Color.White,
+                                        color = colors.onPrimary,
                                         fontWeight = FontWeight.Bold,
                                     )
                                 }
@@ -221,10 +222,11 @@ fun AccountScreen(
                                         )
                                     }
                                 }
-                                Text(
-                                    text = "›",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = colors.textFaint,
+                                Icon(
+                                    Icons.Filled.KeyboardArrowRight,
+                                    contentDescription = null,
+                                    tint = colors.textFaint,
+                                    modifier = Modifier.size(24.dp),
                                 )
                             }
                         }
@@ -254,10 +256,11 @@ fun AccountScreen(
                                     color = colors.textPrimary,
                                     modifier = Modifier.weight(1f),
                                 )
-                                Text(
-                                    text = "›",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = colors.textFaint,
+                                Icon(
+                                    Icons.Filled.KeyboardArrowRight,
+                                    contentDescription = null,
+                                    tint = colors.textFaint,
+                                    modifier = Modifier.size(24.dp),
                                 )
                             }
                         }

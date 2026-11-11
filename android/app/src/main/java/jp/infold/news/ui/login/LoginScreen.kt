@@ -205,7 +205,7 @@ fun LoginScreen(
             ) {
                 if (submitting) {
                     CircularProgressIndicator(
-                        color = androidx.compose.ui.graphics.Color.White,
+                        color = colors.onPrimary,
                         modifier = Modifier.size(22.dp),
                     )
                 } else {
@@ -236,7 +236,7 @@ private fun TabButton(label: String, selected: Boolean, onClick: () -> Unit, mod
         Text(
             text = label,
             style = MaterialTheme.typography.titleMedium,
-            color = if (selected) androidx.compose.ui.graphics.Color.White else colors.textSecondary,
+            color = if (selected) colors.onPrimary else colors.textSecondary,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 12.dp),

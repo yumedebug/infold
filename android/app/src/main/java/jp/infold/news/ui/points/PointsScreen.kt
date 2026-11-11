@@ -275,7 +275,7 @@ fun PointsScreen(
                                         shape = RoundedCornerShape(10.dp),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = if (summary.points >= plan.points) colors.primary else colors.surfaceHover,
-                                            contentColor = if (summary.points >= plan.points) androidx.compose.ui.graphics.Color.White else colors.textFaint,
+                                            contentColor = if (summary.points >= plan.points) colors.onPrimary else colors.textFaint,
                                         ),
                                     ) {
                                         Text(context.getString(R.string.points_use))

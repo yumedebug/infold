@@ -1,9 +1,17 @@
 package jp.infold.news.ui.article
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +25,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,10 +48,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import jp.infold.news.R
 import jp.infold.news.data.ApiClient
+import jp.infold.news.data.Article
 import jp.infold.news.data.ArticleDetailResponse
+import jp.infold.news.data.BASE_URL
 import jp.infold.news.data.Category
 import jp.infold.news.ui.LocalSnackbarHostState
 import jp.infold.news.ui.UiState
@@ -58,6 +71,7 @@ import jp.infold.news.ui.theme.LocalInfoldColors
 import jp.infold.news.util.categoryDisplayName
 import jp.infold.news.util.formatPublishedAt
 import jp.infold.news.util.openExternalLink
+import java.net.URLEncoder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -246,6 +260,11 @@ fun ArticleDetailScreen(
                         }
                     }
 
+                    // 共有バー（Web 版と同じ SNS 共有）
+                    item(key = "share") {
+                        ArticleShareBar(article = article)
+                    }
+
                     // 本文
                     item(key = "content") {
                         val blocks = remember(article.content) { Markdown.parse(article.content) }
@@ -274,12 +293,23 @@ fun ArticleDetailScreen(
                                     .fillMaxWidth(),
                                 onClick = { openExternalLink(context, article.sourceUrl) },
                             ) {
-                                Text(
-                                    text = context.getString(R.string.article_read_original) + " ↗",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = colors.primary,
+                                Row(
                                     modifier = Modifier.padding(16.dp),
-                                )
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = context.getString(R.string.article_read_original),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = colors.primary,
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Icon(
+                                        Icons.Filled.ExitToApp,
+                                        contentDescription = null,
+                                        tint = colors.primary,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
                             }
                         }
                     }
@@ -307,4 +337,128 @@ fun ArticleDetailScreen(
             }
         }
     }
+}
+
+// ============================================================
+// 共有バー（Web 版の .share-bar と同じ構成）
+// ============================================================
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ArticleShareBar(article: Article) {
+    val colors = LocalInfoldColors.current
+    val context = LocalContext.current
+    val snackbar = LocalSnackbarHostState.current
+    val scope = rememberCoroutineScope()
+    val shareUrl = "$BASE_URL/article/${article.id}"
+    val shareText = article.title
+    val enc = { value: String -> URLEncoder.encode(value, "UTF-8") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 4.dp),
+    ) {
+        androidx.compose.material3.HorizontalDivider(color = colors.border, thickness = 1.dp)
+        Spacer(Modifier.height(12.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(
+                Icons.Filled.Share,
+                contentDescription = null,
+                tint = colors.textFaint,
+                modifier = Modifier.size(15.dp),
+            )
+            Text(
+                text = context.getString(R.string.article_share_title).uppercase(),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 1.2.sp,
+                ),
+                color = colors.textFaint,
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SharePill("X") {
+                openExternalLink(
+                    context,
+                    "https://twitter.com/intent/tweet?url=${enc(shareUrl)}&text=${enc(shareText)}",
+                )
+            }
+            SharePill("Facebook") {
+                openExternalLink(
+                    context,
+                    "https://www.facebook.com/sharer/sharer.php?u=${enc(shareUrl)}",
+                )
+            }
+            SharePill("LINE") {
+                openExternalLink(
+                    context,
+                    "https://social-plugins.line.me/lineit/share?url=${enc(shareUrl)}&text=${enc(shareText)}",
+                )
+            }
+            SharePill("Instagram") {
+                val send = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, "$shareText $shareUrl")
+                }
+                try {
+                    context.startActivity(
+                        Intent.createChooser(send, context.getString(R.string.article_share_title))
+                    )
+                } catch (_: Exception) {
+                }
+            }
+            SharePill("Threads") {
+                openExternalLink(
+                    context,
+                    "https://www.threads.net/intent/post?text=${enc("$shareText $shareUrl")}",
+                )
+            }
+            SharePill("LinkedIn") {
+                openExternalLink(
+                    context,
+                    "https://www.linkedin.com/sharing/share-offsite/?url=${enc(shareUrl)}",
+                )
+            }
+            SharePill(context.getString(R.string.article_share_copy)) {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                val ok = try {
+                    clipboard?.setPrimaryClip(ClipData.newPlainText("INFOLD", shareUrl))
+                    clipboard != null
+                } catch (_: Exception) {
+                    false
+                }
+                val message = context.getString(
+                    if (ok) R.string.article_share_copied else R.string.article_share_copy_failed
+                )
+                scope.launch { snackbar.showSnackbar(message) }
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        androidx.compose.material3.HorizontalDivider(color = colors.border, thickness = 1.dp)
+    }
+}
+
+@Composable
+private fun SharePill(label: String, onClick: () -> Unit) {
+    val colors = LocalInfoldColors.current
+    val shape = RoundedCornerShape(50)
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+        color = colors.textSecondary,
+        modifier = Modifier
+            .clip(shape)
+            .background(colors.surface)
+            .border(1.dp, colors.border, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+    )
 }

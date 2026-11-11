@@ -58,6 +58,10 @@
     <string name="article_points_claimed">Article read complete (+1 POINT)</string>
     <string name="article_points_already">Points already earned for this article</string>
     <string name="article_points_login">Sign in to earn points by reading articles</string>
+    <string name="article_share_title">Share</string>
+    <string name="article_share_copy">Copy link</string>
+    <string name="article_share_copied">Link copied</string>
+    <string name="article_share_copy_failed">Could not copy the link</string>
 
     <!-- Account / Login -->
     <string name="account_title">Account</string>

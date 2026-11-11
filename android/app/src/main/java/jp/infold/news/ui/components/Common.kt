@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -83,40 +84,44 @@ import kotlinx.coroutines.launch
 // INFOLD 共通 UI コンポーネント — Liquid Glass UI
 // ============================================================
 
-/** Web 版のロゴマーク（グラデーションの角丸四角 + 白いドキュメント） */
+/** Web 版のロゴマーク（アクセントカラーの正方タイル + 折り畳まれた N） */
 @Composable
 fun BrandLogo(size: Dp, modifier: Modifier = Modifier) {
-    val density = LocalDensity.current
-    val px = with(density) { size.toPx() }
+    val colors = LocalInfoldColors.current
     Canvas(modifier = modifier.size(size)) {
-        val brush = Brush.linearGradient(listOf(Color(0xFF0D8BFF), Color(0xFF6A4DFF)))
+        val box = this.size
+        val s = box.minDimension / 40f
         drawRoundRect(
-            brush = brush,
-            topLeft = Offset(px * 0.04f, px * 0.04f),
-            size = Size(px * 0.92f, px * 0.92f),
-            cornerRadius = CornerRadius(px * 0.24f, px * 0.24f),
+            color = colors.primary,
+            size = box,
+            cornerRadius = CornerRadius(2f * s, 2f * s),
         )
-        drawRoundRect(
-            color = Color.White,
-            topLeft = Offset(px * 0.27f, px * 0.36f),
-            size = Size(px * 0.21f, px * 0.30f),
-            cornerRadius = CornerRadius(px * 0.06f, px * 0.06f),
-        )
-        drawCircle(
-            color = Color.White,
-            radius = px * 0.075f,
-            center = Offset(px * 0.375f, px * 0.22f),
-        )
-        drawRoundRect(
-            color = Color.White.copy(alpha = 0.55f),
-            topLeft = Offset(px * 0.56f, px * 0.36f),
-            size = Size(px * 0.21f, px * 0.30f),
-            cornerRadius = CornerRadius(px * 0.06f, px * 0.06f),
-        )
+        val n = Path().apply {
+            moveTo(9f * s, 30f * s)
+            lineTo(9f * s, 10f * s)
+            lineTo(13.7f * s, 10f * s)
+            lineTo(26.3f * s, 24.1f * s)
+            lineTo(26.3f * s, 10f * s)
+            lineTo(31f * s, 10f * s)
+            lineTo(31f * s, 30f * s)
+            lineTo(26.4f * s, 30f * s)
+            lineTo(13.7f * s, 15.8f * s)
+            lineTo(13.7f * s, 30f * s)
+            close()
+        }
+        drawPath(n, colors.onPrimary)
+        val stem = Path().apply {
+            moveTo(26.3f * s, 10f * s)
+            lineTo(31f * s, 10f * s)
+            lineTo(31f * s, 30f * s)
+            lineTo(26.3f * s, 30f * s)
+            close()
+        }
+        drawPath(stem, colors.onPrimary.copy(alpha = 0.55f))
     }
 }
 
-/** INFOLD ワードマーク（グラデーションテキスト） */
+/** INFOLD ワードマーク（Web 版と同じソリッドカラーのロゴタイプ） */
 @Composable
 fun BrandWordmark(modifier: Modifier = Modifier) {
     val colors = LocalInfoldColors.current
@@ -126,8 +131,8 @@ fun BrandWordmark(modifier: Modifier = Modifier) {
         style = MaterialTheme.typography.titleLarge.copy(
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = 4.sp,
-            brush = Brush.horizontalGradient(listOf(colors.textPrimary, colors.primary)),
         ),
+        color = colors.textPrimary,
     )
 }
 
@@ -156,7 +161,7 @@ fun GlassCard(
 fun CategoryBadge(slug: String, name: String, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(7.dp))
+            .clip(RoundedCornerShape(50))
             .background(categorySoftColor(slug))
             .padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -181,7 +186,7 @@ fun CategoryChip(
     val colors = LocalInfoldColors.current
     val color = if (slug != null) categoryColor(slug) else colors.primary
     val bg = if (selected) color else colors.surface
-    val fg = if (selected) Color.White else color
+    val fg = if (selected) colors.onPrimary else color
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))
@@ -274,18 +279,24 @@ fun ArticleThumb(raw: String?, category: String = "other", modifier: Modifier = 
             contentScale = ContentScale.Crop,
         )
     } else {
-        val c = categoryColor(category)
         Box(
             modifier = modifier
                 .clip(shape)
                 .background(
                     Brush.linearGradient(
-                        listOf(c.copy(alpha = 0.85f), colors.backgroundSoft)
+                        listOf(Color(0xFF17191D), Color(0xFF2A2E27), colors.primary2)
                     )
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            BrandLogo(size = 30.dp)
+            Text(
+                text = "INFOLD",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 3.sp,
+                ),
+                color = Color.White.copy(alpha = 0.35f),
+            )
         }
     }
 }
@@ -325,6 +336,7 @@ fun FeaturedBannerCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalInfoldColors.current
     val shape = RoundedCornerShape(14.dp)
     val resolved = ApiClient.resolveImage(article.thumbnail)
     Box(
@@ -332,7 +344,11 @@ fun FeaturedBannerCard(
             .width(260.dp)
             .height(160.dp)
             .clip(shape)
-            .background(Color(0xFF1A1D2B))
+            .background(
+                Brush.linearGradient(
+                    listOf(Color(0xFF17191D), Color(0xFF202329), colors.primary2)
+                )
+            )
             .clickable(onClick = onClick),
     ) {
         if (resolved != null) {
@@ -343,13 +359,12 @@ fun FeaturedBannerCard(
                 contentScale = ContentScale.Crop,
             )
         } else {
-            val c = categoryColor(article.category)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.linearGradient(
-                            listOf(c.copy(alpha = 0.6f), Color(0xFF1A1D2B))
+                            listOf(Color(0xFF17191D), Color(0xFF202329), colors.primary2)
                         )
                     ),
             )
@@ -405,6 +420,7 @@ fun HeroCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalInfoldColors.current
     val shape = RoundedCornerShape(18.dp)
     val resolved = ApiClient.resolveImage(article.thumbnail)
     Box(
@@ -412,7 +428,11 @@ fun HeroCard(
             .fillMaxWidth()
             .height(210.dp)
             .clip(shape)
-            .background(Color(0xFF1A1D2B))
+            .background(
+                Brush.linearGradient(
+                    listOf(Color(0xFF17191D), Color(0xFF202329), colors.primary2)
+                )
+            )
             .clickable(onClick = onClick),
     ) {
         if (resolved != null) {
@@ -548,15 +568,16 @@ fun ErrorView(
             modifier = Modifier.fillMaxWidth(),
         )
         if (onRetry != null) {
-            Text(
-                text = "↻",
-                style = MaterialTheme.typography.titleLarge,
-                color = colors.primary,
+            Icon(
+                Icons.Filled.Refresh,
+                contentDescription = "再読み込み",
+                tint = colors.primary,
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
                     .background(colors.primary.copy(alpha = 0.12f))
                     .clickable(onClick = onRetry)
-                    .padding(horizontal = 24.dp, vertical = 10.dp),
+                    .padding(12.dp)
+                    .size(24.dp),
             )
         }
         val scope = rememberCoroutineScope()
@@ -791,8 +812,8 @@ private fun FloatingBottomNavBarSurface(
                         Brush.verticalGradient(
                             listOf(
                                 Color.White.copy(alpha = 0.13f),
-                                Color(0xFF17243D).copy(alpha = 0.16f),
-                                Color(0xFF0C1220).copy(alpha = 0.10f),
+                                Color(0xFF202329).copy(alpha = 0.18f),
+                                Color(0xFF101114).copy(alpha = 0.12f),
                             )
                         )
                     } else {
@@ -800,7 +821,7 @@ private fun FloatingBottomNavBarSurface(
                             listOf(
                                 Color.White.copy(alpha = 0.34f),
                                 Color.White.copy(alpha = 0.22f),
-                                Color(0xFFE8F0FF).copy(alpha = 0.16f),
+                                Color(0xFFF4F5F2).copy(alpha = 0.18f),
                             )
                         )
                     },

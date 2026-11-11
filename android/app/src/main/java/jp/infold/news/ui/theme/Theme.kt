@@ -7,7 +7,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
 
 val LocalInfoldColors = staticCompositionLocalOf { DarkInfoldColors }
 
@@ -21,7 +20,7 @@ fun InfoldTheme(
     val colorScheme = if (darkTheme) {
         darkColorScheme(
             primary = colors.primary,
-            onPrimary = Color.White,
+            onPrimary = colors.onPrimary,
             primaryContainer = colors.primary.copy(alpha = 0.2f),
             onPrimaryContainer = colors.primary,
             secondary = colors.primary2,
@@ -38,7 +37,7 @@ fun InfoldTheme(
     } else {
         lightColorScheme(
             primary = colors.primary,
-            onPrimary = Color.White,
+            onPrimary = colors.onPrimary,
             primaryContainer = colors.primary.copy(alpha = 0.15f),
             onPrimaryContainer = colors.primary,
             secondary = colors.primary2,

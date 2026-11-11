@@ -249,7 +249,7 @@ private fun LanguageOption(label: String, selected: Boolean, onClick: () -> Unit
     Text(
         text = label,
         style = MaterialTheme.typography.titleMedium,
-        color = if (selected) androidx.compose.ui.graphics.Color.White else colors.textSecondary,
+        color = if (selected) colors.onPrimary else colors.textSecondary,
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
             .background(if (selected) colors.primary else colors.backgroundSoft)
@@ -264,7 +264,7 @@ private fun ThemeOption(label: String, selected: Boolean, onClick: () -> Unit) {
     Text(
         text = label,
         style = MaterialTheme.typography.labelLarge,
-        color = if (selected) androidx.compose.ui.graphics.Color.White else colors.textSecondary,
+        color = if (selected) colors.onPrimary else colors.textSecondary,
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
             .background(if (selected) colors.primary else colors.backgroundSoft)

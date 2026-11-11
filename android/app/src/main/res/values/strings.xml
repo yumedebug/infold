@@ -58,6 +58,10 @@
     <string name="article_points_claimed">記事を読了しました (+1 POINT)</string>
     <string name="article_points_already">この記事のポイントは獲得済みです</string>
     <string name="article_points_login">ログインすると記事を読んでポイントを貯められます</string>
+    <string name="article_share_title">共有</string>
+    <string name="article_share_copy">リンクをコピー</string>
+    <string name="article_share_copied">リンクをコピーしました</string>
+    <string name="article_share_copy_failed">リンクをコピーできませんでした</string>
 
     <!-- Account / Login -->
     <string name="account_title">アカウント</string>
